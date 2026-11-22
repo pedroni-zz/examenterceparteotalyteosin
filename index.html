@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación Supervisada | Teorema de Tales</title>
+    <title>Evaluación Supervisada · Teorema de Tales</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        /* Fuente base y diseño limpio adaptable */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f1f5f9;
@@ -18,17 +19,16 @@
         .font-mono-code {
             font-family: 'JetBrains Mono', monospace;
         }
-        /* Bloqueo de selección de texto en el área del examen */
+        /* Bloqueo de selección de texto durante el examen activo */
         .no-select {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
         }
-        /* Animación suave para alertas de seguridad */
         @keyframes pulseBorder {
-            0%, 100% { border-color: rgba(239, 68, 68, 0.8); }
-            50% { border-color: rgba(239, 68, 68, 0.2); }
+            0%, 100% { border-color: rgba(239, 68, 68, 0.9); }
+            50% { border-color: rgba(239, 68, 68, 0.3); }
         }
         .alert-pulse {
             animation: pulseBorder 2s infinite;
@@ -37,7 +37,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between antialiased selection:bg-indigo-100 selection:text-indigo-900">
 
-    <!-- Barra Superior de Estado y Seguridad -->
+    <!-- Encabezado Superior -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b border-slate-800">
         <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2.5">
@@ -48,11 +48,10 @@
                 </div>
                 <div>
                     <h1 class="text-sm sm:text-base font-bold tracking-tight leading-tight">Evaluación Supervisada</h1>
-                    <p class="text-[11px] text-slate-400">Matemáticas Aplicadas · Teorema de Tales</p>
+                    <p class="text-[11px] text-slate-400">Teorema de Tales · Dos Partes Aplicadas</p>
                 </div>
             </div>
 
-            <!-- Indicadores en tiempo real -->
             <div class="flex items-center gap-2 sm:gap-3">
                 <div id="network-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-700/60">
                     <span id="network-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -65,13 +64,24 @@
         </div>
     </header>
 
-    <!-- Banner de Desconexión Persistente (cuando navigator.onLine === false) -->
-    <div id="offline-banner" class="hidden bg-red-600 text-white px-4 py-2.5 text-center text-xs sm:text-sm font-semibold shadow-lg">
-        <div class="max-w-4xl mx-auto flex items-center justify-center gap-2">
-            <svg class="w-5 h-5 shrink-0 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3"/>
-            </svg>
-            <span>SIN CONEXIÓN A INTERNET: Se ha registrado una infracción y se generó una nueva versión del examen. Reconecta tus datos o Wi-Fi para poder entregar.</span>
+    <!-- Overlay Bloqueante al Perder Conexión -->
+    <div id="offline-overlay" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl border-2 border-red-500 text-center space-y-4">
+            <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+                <svg class="w-8 h-8 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3"/>
+                </svg>
+            </div>
+            <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-red-600">Conexión Perdida</span>
+                <h3 class="text-xl font-extrabold text-slate-900 mt-1">Red Desconectada</h3>
+            </div>
+            <p class="text-sm text-slate-700 leading-relaxed">
+                Se detectó la pérdida de conexión a internet. El evento quedó registrado en tu bitácora local, se generó una nueva versión del examen y los envíos pendientes se transmitirán al recuperar la red.
+            </p>
+            <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-900 font-medium">
+                Vuelve a activar tus datos móviles o Wi-Fi para continuar y entregar tu evaluación.
+            </div>
         </div>
     </div>
 
@@ -79,59 +89,57 @@
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-6 sm:py-8">
 
         <!-- ========================================================= -->
-        <!-- VISTA 1: REGISTRO INICIAL E INSTRUCCIONES                 -->
+        <!-- VISTA 1: REGISTRO E INSTRUCCIONES                         -->
         <!-- ========================================================= -->
         <section id="view-register" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 py-7 text-white">
                 <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 mb-3">
-                    Protocolo Anti-Fraude Activo
+                    Evaluación Institucional · Dominio @ugto.mx
                 </span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Examen Aplicado: Teorema de Tales</h2>
                 <p class="mt-2 text-slate-300 text-sm sm:text-base max-w-2xl">
-                    Esta evaluación consta de <strong>2 ejercicios prácticos aplicados</strong> con generación paramétrica individual.
+                    Resuelve <strong>2 ejercicios aplicados</strong> sobre proporcionalidad y semejanza. Calificación total sobre <strong>100 puntos</strong>.
                 </p>
             </div>
 
             <div class="p-6 sm:p-8 space-y-6">
-                <!-- Reglas de supervisión -->
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5">
                     <h3 class="text-sm font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
                         <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
-                        Reglas Obligatorias de Integridad Académica
+                        Política de Supervisión y Regeneración Automática
                     </h3>
                     <ul class="mt-3 space-y-2 text-xs sm:text-sm text-amber-950">
                         <li class="flex items-start gap-2">
                             <span class="font-bold text-amber-700">1.</span>
-                            <span><strong>Prohibido salir de la ventana:</strong> Si cambias de pestaña, minimizas la app, abres una ventana flotante o bloqueas la pantalla, el examen se borrará y se generará uno completamente distinto.</span>
+                            <span><strong>Salida o minimizado:</strong> Si cambias de pestaña, minimizas la ventana o recargas durante el examen activo, se borran tus respuestas, se suma una infracción y se generan dos ejercicios nuevos.</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="font-bold text-amber-700">2.</span>
-                            <span><strong>Prohibido apagar datos o Wi-Fi:</strong> El sistema funciona aún sin internet. Si desconectas la red, el evento quedará guardado en la memoria local, el examen cambiará de versión y se notificará al docente en el reporte final.</span>
+                            <span><strong>Desconexión de red:</strong> Si pierdes conexión, se bloquea la pantalla con un aviso, se registra la infracción y los datos se sincronizan al volver la conexión o al entregar.</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="font-bold text-amber-700">3.</span>
-                            <span><strong>Sin revisión posterior:</strong> Al entregar el examen obtendrás tu calificación global y tu comprobante firmado, pero no podrás visualizar las respuestas correctas ni volver atrás.</span>
+                            <span><strong>Sin revisión posterior:</strong> Al entregar verás tu calificación sobre 100, tu sello SHA-256 y la bitácora de incidencias, sin acceso a revisión de preguntas o respuestas.</span>
                         </li>
                     </ul>
                 </div>
 
-                <!-- Formulario de Identificación -->
                 <form id="register-form" class="space-y-4" novalidate>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="student-name" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                                Nombre completo del estudiante <span class="text-red-500">*</span>
+                                Nombre completo <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" id="student-name" required placeholder="Ej. Ana Sofía Ramírez López"
+                            <input type="text" id="student-name" required placeholder="Ej. Valeria Alejandra Morales Ruiz"
                                 class="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                         </div>
                         <div>
                             <label for="student-email" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                                Correo institucional <span class="text-red-500">*</span>
+                                Correo institucional (@ugto.mx) <span class="text-red-500">*</span>
                             </label>
-                            <input type="email" id="student-email" required placeholder="usuario@institucion.edu.mx"
+                            <input type="email" id="student-email" required placeholder="estudiante@ugto.mx"
                                 class="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                         </div>
                     </div>
@@ -140,11 +148,11 @@
 
                     <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100">
                         <p class="text-xs text-slate-500">
-                            Al iniciar, aceptas que el navegador registre eventos de foco y conectividad durante la prueba.
+                            Se requiere conexión activa y correo terminado estrictamente en <strong>@ugto.mx</strong>.
                         </p>
                         <button type="submit" id="btn-start-exam"
                             class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                            <span>Comenzar Examen Ahora</span>
+                            <span>Iniciar Evaluación</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                             </svg>
@@ -158,76 +166,63 @@
         <!-- VISTA 2: EXAMEN ACTIVO (2 PARTES - TEOREMA DE TALES)      -->
         <!-- ========================================================= -->
         <section id="view-exam" class="hidden space-y-6 no-select">
-            <!-- Barra de información del alumno e incidentes -->
             <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
                         <h2 id="exam-student-display" class="font-bold text-slate-900 text-sm sm:text-base">Estudiante</h2>
                     </div>
-                    <p id="exam-email-display" class="text-xs text-slate-500 ml-4.5">correo@ejemplo.com</p>
+                    <p id="exam-email-display" class="text-xs text-slate-500 ml-4.5">usuario@ugto.mx</p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
                     <div class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
-                        Reactivo dinámico: <span class="text-indigo-700 font-mono-code" id="exam-seed-display">V1</span>
+                        Set: <span class="text-indigo-700 font-mono-code" id="exam-seed-display">V1</span>
                     </div>
                     <div id="infraction-counter-box" class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
-                        Salidas detectadas: <span id="infraction-count" class="font-bold">0</span>
+                        Infracciones: <span id="infraction-count" class="font-bold">0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- PARTE 1: TRIÁNGULOS SEMEJANTES / SOMBRAS -->
+            <!-- PARTE 1: Proporcionalidad y semejanza con sombras y referencias -->
             <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-700">Parte 1 de 2 · Semejanza y Proyección</span>
-                    <span class="text-xs font-medium text-slate-500">Valor: 5.0 pts</span>
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-700">Parte 1 · Semejanza, Sombras y Referencias</span>
+                    <span class="text-xs font-semibold text-slate-600">50 pts</span>
                 </div>
                 <div class="p-5 sm:p-6 space-y-5">
                     <p id="q1-text" class="text-sm sm:text-base text-slate-800 leading-relaxed font-medium">
-                        Cargando ejercicio 1...
+                        Cargando ejercicio de la Parte 1...
                     </p>
-
-                    <!-- Diagrama SVG Dinámico Parte 1 -->
                     <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 sm:p-4 flex justify-center items-center overflow-hidden">
                         <div id="q1-svg-container" class="w-full max-w-lg"></div>
                     </div>
-
-                    <!-- Opciones Parte 1 -->
-                    <div class="space-y-2.5" id="q1-options" role="radiogroup" aria-label="Opciones Parte 1">
-                        <!-- Generadas dinámicamente -->
-                    </div>
+                    <div class="space-y-2.5" id="q1-options" role="radiogroup" aria-label="Opciones Parte 1"></div>
                 </div>
             </article>
 
-            <!-- PARTE 2: RECTAS PARALELAS CORTADAS POR SECANTES -->
+            <!-- PARTE 2: Rectas paralelas cortadas por transversales -->
             <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-700">Parte 2 de 2 · Paralelas y Transversales</span>
-                    <span class="text-xs font-medium text-slate-500">Valor: 5.0 pts</span>
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-700">Parte 2 · Rectas Paralelas y Transversales</span>
+                    <span class="text-xs font-semibold text-slate-600">50 pts</span>
                 </div>
                 <div class="p-5 sm:p-6 space-y-5">
                     <p id="q2-text" class="text-sm sm:text-base text-slate-800 leading-relaxed font-medium">
-                        Cargando ejercicio 2...
+                        Cargando ejercicio de la Parte 2...
                     </p>
-
-                    <!-- Diagrama SVG Dinámico Parte 2 -->
                     <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 sm:p-4 flex justify-center items-center overflow-hidden">
                         <div id="q2-svg-container" class="w-full max-w-lg"></div>
                     </div>
-
-                    <!-- Opciones Parte 2 -->
-                    <div class="space-y-2.5" id="q2-options" role="radiogroup" aria-label="Opciones Parte 2">
-                        <!-- Generadas dinámicamente -->
-                    </div>
+                    <div class="space-y-2.5" id="q2-options" role="radiogroup" aria-label="Opciones Parte 2"></div>
                 </div>
             </article>
 
             <!-- Barra de Entrega -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div id="submit-warning" class="text-xs text-slate-500">
-                    Verifica tus selecciones. Una vez enviado, <strong>no podrás ver las respuestas correctas</strong>.
+                    Al pulsar <strong>Finalizar y Entregar Examen</strong>, se calculará tu calificación sobre 100 y se bloqueará la revisión.
                 </div>
                 <button type="button" id="btn-submit-exam"
                     class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition cursor-pointer">
@@ -237,7 +232,7 @@
         </section>
 
         <!-- ========================================================= -->
-        <!-- VISTA 3: COMPROBANTE FINAL Y BITÁCORA PARA EL DOCENTE     -->
+        <!-- VISTA 3: COMPROBANTE FINAL Y BITÁCORA DE INCIDENCIAS      -->
         <!-- ========================================================= -->
         <section id="view-receipt" class="hidden space-y-6">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -247,44 +242,51 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            Examen Cerrado y Bloqueado
+                            Evaluación Entregada · Revisión Deshabilitada
                         </span>
                         <h2 class="text-xl sm:text-2xl font-extrabold">Comprobante Oficial de Evaluación</h2>
-                        <p class="text-xs text-slate-400 mt-1">Por seguridad académica, la revisión de reactivos está deshabilitada.</p>
+                        <p class="text-xs text-slate-400 mt-1">Las preguntas y respuestas fueron eliminadas de memoria por seguridad.</p>
                     </div>
                     <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-5 py-3 text-center shrink-0">
-                        <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Calificación Final</span>
-                        <span id="receipt-score" class="text-3xl font-extrabold text-white font-mono-code">0.0 / 10</span>
+                        <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Calificación</span>
+                        <span id="receipt-score" class="text-3xl font-extrabold text-white font-mono-code">0 / 100</span>
                     </div>
                 </div>
 
                 <div class="p-6 space-y-6">
-                    <!-- Datos del sustentante -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                            <span class="block text-xs text-slate-500 font-medium">Estudiante</span>
+                            <span class="block text-xs text-slate-500 font-medium">Sustentante</span>
                             <span id="receipt-name" class="font-bold text-slate-900">—</span>
                             <span id="receipt-email" class="block text-xs text-slate-600 mt-0.5">—</span>
                         </div>
                         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                            <span class="block text-xs text-slate-500 font-medium">Tiempos y Versión Resuelta</span>
+                            <span class="block text-xs text-slate-500 font-medium">Registro de Tiempo y Versión</span>
                             <span class="block text-xs text-slate-700 mt-1">Inicio: <strong id="receipt-start">—</strong></span>
                             <span class="block text-xs text-slate-700">Entrega: <strong id="receipt-end">—</strong></span>
-                            <span class="block text-xs text-indigo-700 font-semibold mt-0.5">Versión final contestada: #<span id="receipt-version">1</span></span>
+                            <span class="block text-xs text-indigo-700 font-semibold mt-0.5">Versión entregada: #<span id="receipt-version">1</span></span>
                         </div>
                     </div>
 
-                    <!-- Resumen de Auditoría -->
+                    <!-- Estado de Telemetría hacia Google Sheets -->
+                    <div id="sync-status-box" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex flex-wrap items-center justify-between gap-2">
+                        <span id="sync-status-text">Estado de sincronización pendiente...</span>
+                        <button type="button" id="btn-retry-sync" class="hidden px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer">
+                            Reintentar envío
+                        </button>
+                    </div>
+
+                    <!-- Bitácora de Incidencias -->
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Bitácora de Supervisión Anti-Trampas</h3>
+                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Bitácora de Incidencias</h3>
                             <span id="receipt-audit-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                                Sin incidentes
+                                0 incidencias
                             </span>
                         </div>
 
                         <div id="receipt-clean-msg" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm">
-                            El estudiante permaneció dentro de la ventana del examen y mantuvo su conexión activa durante toda la evaluación.
+                            No se registraron salidas de pestaña, minimizados, recargas ni desconexiones durante la evaluación.
                         </div>
 
                         <div id="receipt-table-wrapper" class="hidden overflow-x-auto rounded-xl border border-slate-200">
@@ -292,46 +294,44 @@
                                 <thead>
                                     <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
                                         <th class="py-2.5 px-3 font-bold">#</th>
-                                        <th class="py-2.5 px-3 font-bold">Hora Exacta</th>
-                                        <th class="py-2.5 px-3 font-bold">Evento Detectado</th>
-                                        <th class="py-2.5 px-3 font-bold">Acción Aplicada</th>
+                                        <th class="py-2.5 px-3 font-bold">Fecha y Hora</th>
+                                        <th class="py-2.5 px-3 font-bold">Incidencia</th>
+                                        <th class="py-2.5 px-3 font-bold">Regeneración</th>
                                     </tr>
                                 </thead>
-                                <tbody id="receipt-incidents-body" class="divide-y divide-slate-200 bg-white">
-                                    <!-- Filas dinámicas -->
-                                </tbody>
+                                <tbody id="receipt-incidents-body" class="divide-y divide-slate-200 bg-white"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Sello Criptográfico de Integridad -->
+                    <!-- Sello SHA-256 -->
                     <div class="p-4 rounded-xl bg-slate-900 text-slate-200 space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Sello de Integridad SHA-256 (Antimanipulación)</span>
-                            <span class="text-[11px] text-slate-400">Verificable por el docente</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Sello de Integridad SHA-256</span>
+                            <span class="text-[11px] text-slate-400">Web Crypto API</span>
                         </div>
                         <p id="receipt-hash" class="font-mono-code text-xs break-all text-emerald-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-                            Calculando firma...
+                            Generando firma SHA-256...
                         </p>
                     </div>
 
-                    <!-- Acciones de entrega al profesor -->
+                    <!-- Acciones -->
                     <div class="flex flex-col sm:flex-row gap-3 pt-2">
                         <button type="button" id="btn-copy-receipt"
                             class="flex-1 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
                             </svg>
-                            <span>Copiar Comprobante para Enviar al Docente</span>
+                            <span>Copiar Comprobante</span>
                         </button>
                         <button type="button" id="btn-toggle-json"
                             class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm border border-slate-300 transition cursor-pointer">
-                            Ver Payload JSON (Webhook)
+                            Ver Payload JSON
                         </button>
                     </div>
 
                     <div id="copy-feedback" class="hidden text-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2 rounded-lg">
-                        ¡Comprobante copiado al portapapeles! Ya puedes pegarlo en el formulario o chat de tu profesor.
+                        Comprobante copiado al portapapeles.
                     </div>
 
                     <pre id="json-preview" class="hidden p-4 rounded-xl bg-slate-950 text-slate-300 font-mono-code text-xs overflow-x-auto border border-slate-800"></pre>
@@ -341,9 +341,7 @@
 
     </main>
 
-    <!-- ========================================================= -->
-    <!-- MODAL DE ALERTA DE INFRACCIÓN Y REGENERACIÓN              -->
-    <!-- ========================================================= -->
+    <!-- Modal de Alerta por Infracción y Regeneración -->
     <div id="infraction-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border-2 border-red-500 alert-pulse space-y-4">
             <div class="flex items-center gap-3">
@@ -353,39 +351,36 @@
                     </svg>
                 </div>
                 <div>
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-red-600">Alerta de Seguridad</span>
-                    <h3 class="text-lg font-extrabold text-slate-900 leading-tight">Examen Reiniciado</h3>
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-red-600">Infracción Registrada</span>
+                    <h3 class="text-lg font-extrabold text-slate-900 leading-tight">Examen Regenerado</h3>
                 </div>
             </div>
 
             <p id="modal-infraction-reason" class="text-sm text-slate-700 leading-relaxed">
-                Se detectó una salida de la ventana del examen.
+                Se detectó una acción no permitida durante la evaluación.
             </p>
 
             <div class="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-900 space-y-1">
-                <p><strong>Consecuencia aplicada:</strong></p>
-                <p>• Tus respuestas anteriores fueron borradas.</p>
-                <p>• Se asignó una <strong>nueva versión del examen (#<span id="modal-new-version">2</span>)</strong> con datos diferentes.</p>
-                <p>• El incidente quedó grabado en tu reporte oficial.</p>
+                <p>• Tus respuestas seleccionadas fueron eliminadas.</p>
+                <p>• Se generó una <strong>nueva versión (#<span id="modal-new-version">2</span>)</strong> con nuevos datos y diagramas.</p>
+                <p>• La infracción quedó almacenada en tu bitácora local.</p>
             </div>
 
             <button type="button" id="btn-close-modal"
                 class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition cursor-pointer">
-                Entendido, continuar con el nuevo examen
+                Continuar con el nuevo examen
             </button>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- MODAL DE MENSAJE / VALIDACIÓN / ACCESO DOCENTE             -->
-    <!-- ========================================================= -->
+    <!-- Modal de Acceso Docente (PIN 1701) -->
     <div id="teacher-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 space-y-4">
-            <h3 class="text-base font-extrabold text-slate-900">Acceso Docente · Reiniciar Sesión</h3>
+            <h3 class="text-base font-extrabold text-slate-900">Acceso Docente · Reiniciar Dispositivo</h3>
             <p class="text-xs text-slate-600">
-                Ingresa el PIN de docente para limpiar el almacenamiento local de este dispositivo y permitir una nueva prueba.
+                Introduce el PIN docente para borrar el estado almacenado en este dispositivo y habilitar un nuevo inicio.
             </p>
-            <input type="password" id="teacher-pin-input" maxlength="8" placeholder="Ingresa el PIN docente"
+            <input type="password" id="teacher-pin-input" maxlength="8" placeholder="PIN docente"
                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <p id="teacher-pin-error" class="hidden text-xs font-semibold text-red-600">PIN incorrecto.</p>
             <div class="flex gap-2 pt-1">
@@ -393,34 +388,37 @@
                     Cancelar
                 </button>
                 <button type="button" id="btn-confirm-reset" class="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer">
-                    Borrar y Reiniciar
+                    Reiniciar Dispositivo
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Pie de página -->
+    <!-- Pie de Página con Botón Acceso Docente -->
     <footer class="bg-white border-t border-slate-200 py-4 px-4 mt-8">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-            <span>Sistema de Evaluación Supervisada · Teorema de Tales</span>
-            <button type="button" id="btn-open-teacher" class="text-slate-400 hover:text-slate-700 underline transition cursor-pointer">
-                Acceso Docente: Reiniciar Dispositivo
+            <span>Evaluación Supervisada · Teorema de Tales</span>
+            <button type="button" id="btn-open-teacher" class="text-slate-500 hover:text-slate-900 font-semibold underline transition cursor-pointer">
+                Acceso Docente
             </button>
         </div>
     </footer>
 
-    <!-- ========================================================= -->
-    <!-- LÓGICA DE APLICACIÓN, GENERADOR DE TALES Y ANTI-TRAMPAS   -->
-    <!-- ========================================================= -->
     <script>
+        // =========================================================================
+        // CONFIGURACIÓN DE TELEMETRÍA A GOOGLE SHEETS (PEGA TU ENLACE /exec AQUÍ)
+        // =========================================================================
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZmFL0tGKuf28yywVS9AOn3VODs0VunUmDH1WvewO0k35g2oNpLMAOy9p7NN1UQ_2-hw/exec";
+
         (function () {
             'use strict';
 
-            // Clave de almacenamiento persistente (resiste recargas y modo avión)
-            const STORAGE_KEY = 'tales_secure_exam_state_v1';
+            const STORAGE_KEY = 'tales_ugto_exam_state_v2';
             const TEACHER_PIN = '1701';
+            const INFRACTION_COOLDOWN_MS = 1200;
 
-            // Estado global de la sesión
+            let lastInfractionTime = 0;
+
             let state = {
                 status: 'register', // 'register' | 'active' | 'submitted'
                 studentName: '',
@@ -432,15 +430,12 @@
                 questions: null,
                 answers: { q1: null, q2: null },
                 incidents: [],
+                telemetryQueue: [],
                 score: 0,
-                integrityHash: ''
+                integrityHash: '',
+                finalDelivered: false
             };
 
-            // Control de debounce para evitar disparos múltiples simultáneos (blur + visibilitychange)
-            let lastInfractionTimestamp = 0;
-            const INFRACTION_COOLDOWN_MS = 1200;
-
-            // Referencias al DOM
             const views = {
                 register: document.getElementById('view-register'),
                 exam: document.getElementById('view-exam'),
@@ -448,7 +443,7 @@
             };
 
             // ---------------------------------------------------------
-            // 1. UTILIDADES MATEMÁTICAS Y GENERADOR PSEUDOALEATORIO
+            // GENERADOR ALEATORIO DETERMINISTA POR SEMILLA
             // ---------------------------------------------------------
             function createSeededRandom(seed) {
                 let s = seed % 2147483647;
@@ -463,22 +458,22 @@
                 return Math.floor(rng() * (max - min + 1)) + min;
             }
 
-            function shuffleArray(rng, array) {
-                const arr = array.slice();
-                for (let i = arr.length - 1; i > 0; i--) {
+            function shuffleArray(rng, arr) {
+                const copy = arr.slice();
+                for (let i = copy.length - 1; i > 0; i--) {
                     const j = Math.floor(rng() * (i + 1));
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
                 }
-                return arr;
+                return copy;
             }
 
             function formatNumber(num) {
-                return Number.isInteger(num) ? num.toString() : num.toFixed(2).replace(/\.00$/, '');
+                return Number.isInteger(num) ? String(num) : num.toFixed(2).replace(/\.00$/, '');
             }
 
-            function formatDateTime(isoString) {
-                if (!isoString) return '—';
-                const d = new Date(isoString);
+            function formatDateTime(iso) {
+                if (!iso) return '—';
+                const d = new Date(iso);
                 return d.toLocaleString('es-MX', {
                     day: '2-digit',
                     month: '2-digit',
@@ -490,201 +485,132 @@
             }
 
             // ---------------------------------------------------------
-            // 2. GENERADOR PARAMÉTRICO DEL TEOREMA DE TALES (2 PARTES)
+            // GENERADOR DE DOS EJERCICIOS DEL TEOREMA DE TALES + SVG
             // ---------------------------------------------------------
-            function generateExamQuestions(seed) {
+            function generateThalesExercises(seed) {
                 const rng = createSeededRandom(seed);
 
-                // --- PARTE 1: Triángulos semejantes / Sombras proyectadas ---
-                const scenariosPart1 = [
-                    {
-                        mainObj: 'una torre de telecomunicaciones',
-                        refObj: 'un poste de alumbrado',
-                        unit: 'm',
-                        colorMain: '#334155',
-                        colorRef: '#4f46e5'
-                    },
-                    {
-                        mainObj: 'un edificio corporativo',
-                        refObj: 'una señal vial vertical',
-                        unit: 'm',
-                        colorMain: '#1e293b',
-                        colorRef: '#0284c7'
-                    },
-                    {
-                        mainObj: 'un aerogenerador eólico',
-                        refObj: 'un árbol de control',
-                        unit: 'm',
-                        colorMain: '#0f172a',
-                        colorRef: '#059669'
-                    },
-                    {
-                        mainObj: 'una antena repetidora',
-                        refObj: 'una baliza topográfica',
-                        unit: 'm',
-                        colorMain: '#312e81',
-                        colorRef: '#d97706'
-                    }
+                // PARTE 1: Proporcionalidad y semejanza con sombras y referencias
+                const refContexts = [
+                    { mainName: 'una torre de comunicaciones', refName: 'un poste de referencia', unit: 'm', mainColor: '#334155', refColor: '#4f46e5' },
+                    { mainName: 'un edificio universitario', refName: 'una baliza de medición', unit: 'm', mainColor: '#1e293b', refColor: '#0284c7' },
+                    { mainName: 'un molino eólico', refName: 'un mástil de prueba', unit: 'm', mainColor: '#0f172a', refColor: '#059669' },
+                    { mainName: 'una grúa de construcción', refName: 'un puntal vertical', unit: 'm', mainColor: '#312e81', refColor: '#d97706' }
                 ];
+                const ctx1 = refContexts[randInt(rng, 0, refContexts.length - 1)];
 
-                const sc1 = scenariosPart1[randInt(rng, 0, scenariosPart1.length - 1)];
+                const refHeight = randInt(rng, 2, 5);
+                const refShadow = randInt(rng, 3, 7);
+                const factor1 = randInt(rng, 4, 9);
+                const mainShadow = refShadow * factor1;
+                const mainHeight = refHeight * factor1; // x
 
-                // Elegimos valores exactos y limpios: H / S = h / s => H = (h * S) / s
-                const refHeight = randInt(rng, 2, 5); // h (ej. 3 m)
-                const refShadow = randInt(rng, 3, 7); // s (ej. 4 m)
-                const scaleFactor = randInt(rng, 4, 9); // factor de proporción
-                const mainShadow = refShadow * scaleFactor; // S
-                const mainHeight = refHeight * scaleFactor; // H (incógnita x)
+                const d1a = Number(((refShadow * mainShadow) / refHeight).toFixed(2));
+                const d1b = Number((mainShadow - refShadow + refHeight).toFixed(2));
+                const d1c = Number((refHeight * (factor1 + 2)).toFixed(2));
 
-                // Distractores realistas para Parte 1
-                const d1_inverted = Number(((refShadow * mainShadow) / refHeight).toFixed(2));
-                const d1_additive = Number((mainShadow - refShadow + refHeight).toFixed(2));
-                const d1_wrongMult = Number((refHeight * (scaleFactor + 2)).toFixed(2));
-
-                const rawOptions1 = [
+                const raw1 = [
                     { val: mainHeight, correct: true },
-                    { val: d1_inverted === mainHeight ? mainHeight + 4 : d1_inverted, correct: false },
-                    { val: d1_additive === mainHeight ? mainHeight - 3 : d1_additive, correct: false },
-                    { val: d1_wrongMult === mainHeight ? mainHeight + 6 : d1_wrongMult, correct: false }
+                    { val: d1a === mainHeight ? mainHeight + 4 : d1a, correct: false },
+                    { val: d1b === mainHeight ? mainHeight - 3 : d1b, correct: false },
+                    { val: d1c === mainHeight ? mainHeight + 6 : d1c, correct: false }
                 ];
 
-                // Garantizar 4 valores únicos
-                const uniqueOpts1 = [];
-                const usedVals1 = new Set();
-                rawOptions1.forEach((opt, idx) => {
-                    let v = opt.val;
-                    while (usedVals1.has(v) || v <= 0) {
-                        v = Number((v + 2.5 + idx).toFixed(2));
+                const used1 = new Set();
+                const unique1 = raw1.map((item, idx) => {
+                    let v = item.val;
+                    while (used1.has(v) || v <= 0) {
+                        v = Number((v + 2 + idx).toFixed(2));
                     }
-                    usedVals1.add(v);
-                    uniqueOpts1.push({
-                        label: `${formatNumber(v)} ${sc1.unit}`,
-                        isCorrect: opt.correct
-                    });
+                    used1.add(v);
+                    return { label: `${formatNumber(v)} ${ctx1.unit}`, isCorrect: item.correct };
                 });
 
-                const shuffledOpts1 = shuffleArray(rng, uniqueOpts1);
-                const correctIndex1 = shuffledOpts1.findIndex(o => o.isCorrect);
-
+                const shuffled1 = shuffleArray(rng, unique1);
                 const q1 = {
-                    text: `A la misma hora del día, ${sc1.mainObj} proyecta una sombra horizontal de ${mainShadow} ${sc1.unit}, mientras que ${sc1.refObj} de ${refHeight} ${sc1.unit} de altura proyecta una sombra de ${refShadow} ${sc1.unit}. Aplicando el Teorema de Tales para triángulos semejantes, ¿cuál es la altura (x) de ${sc1.mainObj}?`,
-                    svg: buildPart1SVG(sc1, mainShadow, refHeight, refShadow),
-                    options: shuffledOpts1.map(o => o.label),
-                    correctIndex: correctIndex1
+                    text: `En un mismo instante, ${ctx1.mainName} proyecta una sombra de ${mainShadow} ${ctx1.unit}, mientras ${ctx1.refName} de ${refHeight} ${ctx1.unit} de altura proyecta una sombra de ${refShadow} ${ctx1.unit}. Por semejanza y el Teorema de Tales, calcula la altura (x) de ${ctx1.mainName}.`,
+                    svg: renderShadowSVG(ctx1, mainShadow, refHeight, refShadow),
+                    options: shuffled1.map(o => o.label),
+                    correctIndex: shuffled1.findIndex(o => o.isCorrect)
                 };
 
-                // --- PARTE 2: Rectas paralelas cortadas por dos secantes ---
-                const scenariosPart2 = [
-                    {
-                        context: 'Tres avenidas paralelas (L1, L2 y L3) son cortadas por dos calles transversales.',
-                        unit: 'm'
-                    },
-                    {
-                        context: 'Una estructura metálica consta de tres vigas paralelas (L1, L2 y L3) unidas por dos soportes inclinados.',
-                        unit: 'cm'
-                    },
-                    {
-                        context: 'Un terreno agrícola está dividido por tres linderos paralelos (L1, L2 y L3) cruzados por dos canales de riego.',
-                        unit: 'm'
-                    }
+                // PARTE 2: Rectas paralelas cortadas por transversales
+                const parallelContexts = [
+                    { desc: 'Tres calles paralelas (L1, L2 y L3) son atravesadas por dos avenidas transversales.', unit: 'm' },
+                    { desc: 'Tres vigas paralelas (L1, L2 y L3) están unidas por dos barras transversales.', unit: 'cm' },
+                    { desc: 'Tres canales paralelos (L1, L2 y L3) son cruzados por dos caminos transversales.', unit: 'm' }
                 ];
+                const ctx2 = parallelContexts[randInt(rng, 0, parallelContexts.length - 1)];
 
-                const sc2 = scenariosPart2[randInt(rng, 0, scenariosPart2.length - 1)];
+                const segA = randInt(rng, 3, 8);
+                let segB = randInt(rng, 4, 10);
+                if (segB === segA) segB += 2;
+                const factor2 = randInt(rng, 2, 5);
+                const segC = segA * factor2;
+                const segX = segB * factor2; // x
 
-                // Proporción: a / b = c / x  => x = (b * c) / a
-                const baseA = randInt(rng, 3, 8);
-                const baseB = randInt(rng, 4, 10);
-                // Evitar que a == b para que no sea trivial
-                const segA = baseA;
-                const segB = baseB === baseA ? baseB + 2 : baseB;
-                const mult2 = randInt(rng, 2, 5);
-                const segC = segA * mult2;
-                const segX = segB * mult2; // incógnita x
+                const d2a = Number(((segA * segC) / segB).toFixed(2));
+                const d2b = Number((segC + (segB - segA)).toFixed(2));
+                const d2c = Number(((segA * segB) / segC).toFixed(2));
 
-                const d2_inverted = Number(((segA * segC) / segB).toFixed(2));
-                const d2_additive = Number((segC + (segB - segA)).toFixed(2));
-                const d2_cross = Number(((segA * segB) / segC).toFixed(2));
-
-                const rawOptions2 = [
+                const raw2 = [
                     { val: segX, correct: true },
-                    { val: d2_inverted, correct: false },
-                    { val: d2_additive, correct: false },
-                    { val: d2_cross, correct: false }
+                    { val: d2a, correct: false },
+                    { val: d2b, correct: false },
+                    { val: d2c, correct: false }
                 ];
 
-                const uniqueOpts2 = [];
-                const usedVals2 = new Set();
-                rawOptions2.forEach((opt, idx) => {
-                    let v = opt.val;
-                    while (usedVals2.has(v) || v <= 0) {
+                const used2 = new Set();
+                const unique2 = raw2.map((item, idx) => {
+                    let v = item.val;
+                    while (used2.has(v) || v <= 0) {
                         v = Number((v + 3 + idx).toFixed(2));
                     }
-                    usedVals2.add(v);
-                    uniqueOpts2.push({
-                        label: `${formatNumber(v)} ${sc2.unit}`,
-                        isCorrect: opt.correct
-                    });
+                    used2.add(v);
+                    return { label: `${formatNumber(v)} ${ctx2.unit}`, isCorrect: item.correct };
                 });
 
-                const shuffledOpts2 = shuffleArray(rng, uniqueOpts2);
-                const correctIndex2 = shuffledOpts2.findIndex(o => o.isCorrect);
-
+                const shuffled2 = shuffleArray(rng, unique2);
                 const q2 = {
-                    text: `${sc2.context} En una de las transversales los segmentos miden ${segA} ${sc2.unit} y ${segB} ${sc2.unit}. En la otra transversal, el segmento correspondiente al primero mide ${segC} ${sc2.unit}. Determina la longitud del segmento faltante (x).`,
-                    svg: buildPart2SVG(segA, segB, segC, sc2.unit),
-                    options: shuffledOpts2.map(o => o.label),
-                    correctIndex: correctIndex2
+                    text: `${ctx2.desc} En una transversal los tramos consecutivos miden ${segA} ${ctx2.unit} y ${segB} ${ctx2.unit}; en la otra transversal, el tramo correspondiente al primero mide ${segC} ${ctx2.unit}. Halla la longitud del tramo desconocido (x).`,
+                    svg: renderParallelsSVG(segA, segB, segC, ctx2.unit),
+                    options: shuffled2.map(o => o.label),
+                    correctIndex: shuffled2.findIndex(o => o.isCorrect)
                 };
 
                 return { q1, q2 };
             }
 
-            // SVG Dinámico Parte 1: Triángulos semejantes por proyección de sombra
-            function buildPart1SVG(sc, mainShadow, refHeight, refShadow) {
+            function renderShadowSVG(ctx, mainShadow, refHeight, refShadow) {
                 return `
                 <svg viewBox="0 0 460 220" class="w-full h-auto max-h-56" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Fondo cielo sutil -->
                     <rect x="0" y="0" width="460" height="220" rx="12" fill="#f8fafc"/>
-                    
-                    <!-- Sol y rayos paralelos -->
-                    <circle cx="42" cy="36" r="14" fill="#fbbf24" opacity="0.9"/>
-                    <line x1="58" y1="42" x2="245" y2="180" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="5,4"/>
-                    <line x1="280" y1="95" x2="395" y2="180" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="5,4"/>
-
-                    <!-- Suelo -->
+                    <circle cx="42" cy="34" r="14" fill="#fbbf24"/>
+                    <line x1="58" y1="40" x2="245" y2="180" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="5,4"/>
+                    <line x1="282" y1="95" x2="395" y2="180" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="5,4"/>
                     <line x1="25" y1="180" x2="435" y2="180" stroke="#64748b" stroke-width="2.5"/>
 
-                    <!-- Triángulo Mayor (Objeto Principal) -->
                     <polygon points="85,180 85,55 245,180" fill="#4f46e5" fill-opacity="0.08"/>
-                    <rect x="77" y="55" width="12" height="125" rx="2" fill="${sc.colorMain}"/>
-                    <!-- Etiqueta Altura x -->
+                    <rect x="77" y="55" width="12" height="125" rx="2" fill="${ctx.mainColor}"/>
                     <text x="68" y="122" text-anchor="end" font-family="Inter, sans-serif" font-size="14" font-weight="800" fill="#dc2626">x = ?</text>
-                    <!-- Etiqueta Sombra Mayor -->
                     <line x1="85" y1="192" x2="245" y2="192" stroke="#334155" stroke-width="1.5"/>
-                    <text x="165" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e293b">Sombra = ${mainShadow} ${sc.unit}</text>
+                    <text x="165" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e293b">Sombra: ${mainShadow} ${ctx.unit}</text>
 
-                    <!-- Triángulo Menor (Objeto de Referencia) -->
                     <polygon points="315,180 315,120 395,180" fill="#0ea5e9" fill-opacity="0.12"/>
-                    <rect x="311" y="120" width="8" height="60" rx="2" fill="${sc.colorRef}"/>
-                    <!-- Etiqueta Altura Referencia -->
-                    <text x="303" y="154" text-anchor="end" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#4f46e5">${refHeight} ${sc.unit}</text>
-                    <!-- Etiqueta Sombra Menor -->
+                    <rect x="311" y="120" width="8" height="60" rx="2" fill="${ctx.refColor}"/>
+                    <text x="303" y="154" text-anchor="end" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#4f46e5">${refHeight} ${ctx.unit}</text>
                     <line x1="315" y1="192" x2="395" y2="192" stroke="#334155" stroke-width="1.5"/>
-                    <text x="355" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e293b">${refShadow} ${sc.unit}</text>
+                    <text x="355" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e293b">${refShadow} ${ctx.unit}</text>
 
-                    <!-- Ángulos rectos -->
                     <polyline points="85,168 97,168 97,180" fill="none" stroke="#475569" stroke-width="1.5"/>
                     <polyline points="315,170 325,170 325,180" fill="none" stroke="#475569" stroke-width="1.5"/>
                 </svg>`;
             }
 
-            // SVG Dinámico Parte 2: Tres paralelas cortadas por dos secantes
-            function buildPart2SVG(segA, segB, segC, unit) {
+            function renderParallelsSVG(segA, segB, segC, unit) {
                 return `
                 <svg viewBox="0 0 460 220" class="w-full h-auto max-h-56" xmlns="http://www.w3.org/2000/svg">
                     <rect x="0" y="0" width="460" height="220" rx="12" fill="#f8fafc"/>
-
-                    <!-- Tres rectas paralelas L1, L2, L3 -->
                     <line x1="40" y1="45" x2="420" y2="45" stroke="#0284c7" stroke-width="2.5"/>
                     <text x="426" y="49" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">L1</text>
 
@@ -694,28 +620,22 @@
                     <line x1="40" y1="180" x2="420" y2="180" stroke="#0284c7" stroke-width="2.5"/>
                     <text x="426" y="184" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">L3</text>
 
-                    <!-- Secante Izquierda (S1) -->
                     <line x1="175" y1="22" x2="115" y2="202" stroke="#1e293b" stroke-width="3"/>
-                    <!-- Puntos de intersección S1 -->
                     <circle cx="167.3" cy="45" r="4" fill="#4f46e5"/>
                     <circle cx="145.6" cy="110" r="4" fill="#4f46e5"/>
                     <circle cx="122.3" cy="180" r="4" fill="#4f46e5"/>
 
-                    <!-- Etiquetas Secante Izquierda -->
                     <rect x="78" y="66" width="66" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
                     <text x="111" y="81" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${segA} ${unit}</text>
 
                     <rect x="55" y="134" width="66" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
                     <text x="88" y="149" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${segB} ${unit}</text>
 
-                    <!-- Secante Derecha (S2) -->
                     <line x1="275" y1="22" x2="345" y2="202" stroke="#1e293b" stroke-width="3"/>
-                    <!-- Puntos de intersección S2 -->
                     <circle cx="283.9" cy="45" r="4" fill="#4f46e5"/>
                     <circle cx="309.2" cy="110" r="4" fill="#4f46e5"/>
                     <circle cx="336.4" cy="180" r="4" fill="#4f46e5"/>
 
-                    <!-- Etiquetas Secante Derecha -->
                     <rect x="312" y="66" width="66" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
                     <text x="345" y="81" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${segC} ${unit}</text>
 
@@ -725,151 +645,239 @@
             }
 
             // ---------------------------------------------------------
-            // 3. PERSISTENCIA Y SELLO CRIPTOGRÁFICO (SHA-256)
+            // PERSISTENCIA EN LOCALSTORAGE Y FIRMA SHA-256 (WEB CRYPTO API)
             // ---------------------------------------------------------
-            function saveState() {
+            function persistState() {
                 try {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-                } catch (e) {
-                    console.error('No se pudo guardar en localStorage:', e);
+                } catch (err) {
+                    console.error('Error guardando estado en localStorage:', err);
                 }
             }
 
-            function loadState() {
+            function restoreState() {
                 try {
                     const raw = localStorage.getItem(STORAGE_KEY);
                     if (raw) {
                         const parsed = JSON.parse(raw);
                         if (parsed && parsed.status) {
-                            state = parsed;
+                            state = Object.assign({}, state, parsed);
+                            if (!Array.isArray(state.incidents)) state.incidents = [];
+                            if (!Array.isArray(state.telemetryQueue)) state.telemetryQueue = [];
                         }
                     }
-                } catch (e) {
-                    console.error('Error leyendo localStorage:', e);
+                } catch (err) {
+                    console.error('Error restaurando estado desde localStorage:', err);
                 }
             }
 
-            async function computeIntegrityHash(payloadString) {
+            async function generateSHA256Seal(payloadText) {
                 try {
                     if (window.crypto && window.crypto.subtle) {
                         const encoder = new TextEncoder();
-                        const data = encoder.encode(payloadString);
-                        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-                        const hashArray = Array.from(new Uint8Array(hashBuffer));
-                        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+                        const encoded = encoder.encode(payloadText);
+                        const digest = await window.crypto.subtle.digest('SHA-256', encoded);
+                        return Array.from(new Uint8Array(digest))
+                            .map(byte => byte.toString(16).padStart(2, '0'))
+                            .join('')
+                            .toUpperCase();
                     }
-                } catch (e) {
-                    // Fallback determinista si el contexto no soporta subtle
+                } catch (err) {
+                    console.error('Web Crypto API no disponible:', err);
                 }
-                let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
-                for (let i = 0; i < payloadString.length; i++) {
-                    const ch = payloadString.charCodeAt(i);
-                    h1 = Math.imul(h1 ^ ch, 2654435761);
-                    h2 = Math.imul(h2 ^ ch, 1597334677);
-                }
-                h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-                h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-                return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16).toUpperCase().padStart(16, '0');
+                return 'SHA256-UNAVAILABLE';
             }
 
             // ---------------------------------------------------------
-            // 4. MOTOR ANTI-TRAMPAS (PESTAÑA, MINIMIZADO Y MODO OFFLINE)
+            // TELEMETRÍA A GOOGLE SHEETS CON COLA PENDIENTE
             // ---------------------------------------------------------
-            function triggerInfraction(reasonLabel) {
+            function updateSyncStatus(msg, canRetry) {
+                const textEl = document.getElementById('sync-status-text');
+                const retryEl = document.getElementById('btn-retry-sync');
+                if (textEl) textEl.textContent = msg;
+                if (retryEl) {
+                    if (canRetry) retryEl.classList.remove('hidden');
+                    else retryEl.classList.add('hidden');
+                }
+            }
+
+            async function dispatchTelemetry(record, isFinalSubmission) {
+                if (!GOOGLE_SCRIPT_URL || !GOOGLE_SCRIPT_URL.startsWith('http')) {
+                    updateSyncStatus('Telemetría local lista (define GOOGLE_SCRIPT_URL para envío automático a Google Sheets).', false);
+                    return false;
+                }
+
+                if (!navigator.onLine) {
+                    state.telemetryQueue.push(record);
+                    persistState();
+                    updateSyncStatus('Sin red: registro guardado en cola para enviarse al reconectar.', true);
+                    return false;
+                }
+
+                try {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(record)
+                    });
+                    if (isFinalSubmission) {
+                        state.finalDelivered = true;
+                        persistState();
+                    }
+                    updateSyncStatus('Datos enviados a Google Sheets correctamente.', false);
+                    return true;
+                } catch (err) {
+                    state.telemetryQueue.push(record);
+                    persistState();
+                    updateSyncStatus('Error temporal de red: registro encolado para reintento.', true);
+                    return false;
+                }
+            }
+
+            async function flushTelemetryQueue() {
+                if (!GOOGLE_SCRIPT_URL || !GOOGLE_SCRIPT_URL.startsWith('http') || !navigator.onLine) {
+                    return;
+                }
+
+                if (state.telemetryQueue.length > 0) {
+                    const currentQueue = state.telemetryQueue.slice();
+                    const remaining = [];
+
+                    for (const item of currentQueue) {
+                        try {
+                            await fetch(GOOGLE_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                body: JSON.stringify(item)
+                            });
+                        } catch (err) {
+                            remaining.push(item);
+                        }
+                    }
+
+                    state.telemetryQueue = remaining;
+                    persistState();
+                }
+
+                if (state.status === 'submitted' && !state.finalDelivered && state.telemetryQueue.length === 0) {
+                    await dispatchTelemetry({
+                        nombre: state.studentName,
+                        correo: state.studentEmail,
+                        tipoEvento: 'ENTREGA_FINAL',
+                        detalle: `Entrega final Versión #${state.version}`,
+                        totalInfracciones: state.incidents.length,
+                        calificacion: `${state.score} / 100`,
+                        bitacoraCompleta: JSON.stringify(state.incidents),
+                        sello: state.integrityHash
+                    }, true);
+                } else if (state.status === 'submitted' && state.finalDelivered && state.telemetryQueue.length === 0) {
+                    updateSyncStatus('Entrega y bitácora sincronizadas con Google Sheets.', false);
+                }
+            }
+
+            // ---------------------------------------------------------
+            // DETECCIÓN DE INFRACCIONES Y REGENERACIÓN DEL EXAMEN
+            // ---------------------------------------------------------
+            function registerInfraction(reason, showModalPopup) {
                 if (state.status !== 'active') return;
 
                 const now = Date.now();
-                if (now - lastInfractionTimestamp < INFRACTION_COOLDOWN_MS) {
-                    return; // Evita duplicados por eventos encadenados
+                if (now - lastInfractionTime < INFRACTION_COOLDOWN_MS) {
+                    return;
                 }
-                lastInfractionTimestamp = now;
+                lastInfractionTime = now;
 
-                // Incrementar versión y regenerar semilla completamente distinta
                 state.version += 1;
                 state.seed = Math.floor(now % 1000000) + state.version * 7919;
-                state.questions = generateExamQuestions(state.seed);
+                state.questions = generateThalesExercises(state.seed);
                 state.answers = { q1: null, q2: null };
 
-                // Registrar incidente en bitácora persistente
-                state.incidents.push({
+                const incident = {
                     number: state.incidents.length + 1,
                     timestamp: new Date().toISOString(),
-                    reason: reasonLabel,
-                    newVersion: state.version
-                });
+                    reason: reason,
+                    regeneratedVersion: state.version
+                };
+                state.incidents.push(incident);
+                persistState();
+                renderExamView();
 
-                saveState();
-                renderActiveExam();
+                dispatchTelemetry({
+                    nombre: state.studentName,
+                    correo: state.studentEmail,
+                    tipoEvento: 'INFRACCION',
+                    detalle: `${reason} -> Nueva versión #${state.version}`,
+                    totalInfracciones: state.incidents.length,
+                    calificacion: 'En curso',
+                    bitacoraCompleta: JSON.stringify(state.incidents),
+                    sello: ''
+                }, false);
 
-                // Mostrar modal de alerta al estudiante
-                document.getElementById('modal-infraction-reason').textContent =
-                    `Motivo registrado: "${reasonLabel}". Por seguridad, tu examen anterior fue anulado.`;
-                document.getElementById('modal-new-version').textContent = state.version;
-                document.getElementById('infraction-modal').classList.remove('hidden');
+                if (showModalPopup) {
+                    document.getElementById('modal-infraction-reason').textContent =
+                        `Infracción detectada: ${reason}.`;
+                    document.getElementById('modal-new-version').textContent = state.version;
+                    document.getElementById('infraction-modal').classList.remove('hidden');
+                }
             }
 
-            function updateNetworkUI() {
-                const isOnline = navigator.onLine;
+            function syncConnectionUI() {
+                const online = navigator.onLine;
                 const badge = document.getElementById('network-badge');
                 const dot = document.getElementById('network-dot');
                 const text = document.getElementById('network-text');
-                const banner = document.getElementById('offline-banner');
+                const overlay = document.getElementById('offline-overlay');
                 const btnSubmit = document.getElementById('btn-submit-exam');
 
-                if (isOnline) {
+                if (online) {
                     badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-700/60';
                     dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
                     text.textContent = 'En línea';
-                    banner.classList.add('hidden');
+                    overlay.classList.add('hidden');
                     if (btnSubmit) {
                         btnSubmit.disabled = false;
                         btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
-                        btnSubmit.textContent = 'Finalizar y Entregar Examen';
                     }
+                    flushTelemetryQueue();
                 } else {
                     badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-950 text-red-200 border border-red-700';
                     dot.className = 'w-2 h-2 rounded-full bg-red-400 animate-ping';
                     text.textContent = 'Sin conexión';
                     if (state.status === 'active') {
-                        banner.classList.remove('hidden');
-                        if (btnSubmit) {
-                            btnSubmit.disabled = true;
-                            btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
-                            btnSubmit.textContent = 'Reconecta internet para entregar';
-                        }
+                        overlay.classList.remove('hidden');
+                    }
+                    if (btnSubmit) {
+                        btnSubmit.disabled = true;
+                        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
                     }
                 }
             }
 
-            // Listeners de eventos de seguridad
+            // Cambio de pestaña o minimizado
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && state.status === 'active') {
-                    triggerInfraction('Cambio de pestaña, minimizado o bloqueo de pantalla');
+                    registerInfraction('Cambio de pestaña o minimizado de ventana (visibilitychange)', true);
                 }
             });
 
-            window.addEventListener('blur', () => {
-                if (state.status === 'active') {
-                    triggerInfraction('Pérdida de foco de ventana / Apertura de app externa');
-                }
-            });
-
+            // Pérdida de conexión
             window.addEventListener('offline', () => {
-                updateNetworkUI();
+                syncConnectionUI();
                 if (state.status === 'active') {
-                    triggerInfraction('Desconexión de red (Datos móviles o Wi-Fi apagados)');
+                    registerInfraction('Desconexión de internet durante el examen (offline)', false);
                 }
             });
 
+            // Recuperación de conexión
             window.addEventListener('online', () => {
-                updateNetworkUI();
+                syncConnectionUI();
             });
 
-            // Bloqueo de clic derecho y atajos de copia/inspección durante el examen
+            // Bloqueos básicos de copia / menú contextual durante el examen
             document.addEventListener('contextmenu', (e) => {
-                if (state.status === 'active') {
-                    e.preventDefault();
-                }
+                if (state.status === 'active') e.preventDefault();
             });
 
             document.addEventListener('keydown', (e) => {
@@ -877,68 +885,63 @@
                     if ((e.ctrlKey || e.metaKey) && ['c', 'u', 's', 'p', 'i'].includes(e.key.toLowerCase())) {
                         e.preventDefault();
                     }
-                    if (e.key === 'F12') {
-                        e.preventDefault();
-                    }
+                    if (e.key === 'F12') e.preventDefault();
                 }
             });
 
             // ---------------------------------------------------------
-            // 5. RENDERIZADO DE INTERFACES
+            // RENDERIZADO DE VISTAS
             // ---------------------------------------------------------
-            function switchView(viewName) {
-                Object.keys(views).forEach(k => {
-                    if (k === viewName) {
-                        views[k].classList.remove('hidden');
-                    } else {
-                        views[k].classList.add('hidden');
-                    }
+            function showView(name) {
+                Object.keys(views).forEach(key => {
+                    if (key === name) views[key].classList.remove('hidden');
+                    else views[key].classList.add('hidden');
                 });
 
-                const statusBadge = document.getElementById('exam-status-badge');
-                if (viewName === 'active') {
-                    statusBadge.classList.remove('hidden');
-                    statusBadge.classList.add('flex');
+                const badge = document.getElementById('exam-status-badge');
+                if (name === 'active') {
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
                 } else {
-                    statusBadge.classList.add('hidden');
-                    statusBadge.classList.remove('flex');
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
                 }
             }
 
-            function renderOptionGroup(containerId, questionKey, options, selectedIndex) {
+            function renderOptions(containerId, qKey, options, selectedIdx) {
                 const container = document.getElementById(containerId);
                 container.innerHTML = '';
                 const letters = ['A', 'B', 'C', 'D'];
 
-                options.forEach((optText, idx) => {
-                    const isSelected = selectedIndex === idx;
+                options.forEach((label, idx) => {
+                    const chosen = selectedIdx === idx;
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     btn.className = `w-full text-left p-3.5 sm:p-4 rounded-xl border-2 transition flex items-center gap-3 cursor-pointer ${
-                        isSelected
+                        chosen
                             ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 shadow-sm'
                             : 'border-slate-200 hover:border-slate-300 bg-white text-slate-800'
                     }`;
 
                     btn.innerHTML = `
                         <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 ${
-                            isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                            chosen ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
                         }">${letters[idx]}</span>
-                        <span class="text-sm sm:text-base font-semibold">${optText}</span>
+                        <span class="text-sm sm:text-base font-semibold">${label}</span>
                     `;
 
                     btn.addEventListener('click', () => {
-                        state.answers[questionKey] = idx;
-                        saveState();
-                        renderOptionGroup(containerId, questionKey, options, idx);
+                        state.answers[qKey] = idx;
+                        persistState();
+                        renderOptions(containerId, qKey, options, idx);
                     });
 
                     container.appendChild(btn);
                 });
             }
 
-            function renderActiveExam() {
-                switchView('exam');
+            function renderExamView() {
+                showView('exam');
 
                 document.getElementById('exam-student-display').textContent = state.studentName;
                 document.getElementById('exam-email-display').textContent = state.studentEmail;
@@ -955,45 +958,43 @@
                     boxEl.className = 'px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800';
                 }
 
-                // Render Parte 1
                 document.getElementById('q1-text').textContent = state.questions.q1.text;
                 document.getElementById('q1-svg-container').innerHTML = state.questions.q1.svg;
-                renderOptionGroup('q1-options', 'q1', state.questions.q1.options, state.answers.q1);
+                renderOptions('q1-options', 'q1', state.questions.q1.options, state.answers.q1);
 
-                // Render Parte 2
                 document.getElementById('q2-text').textContent = state.questions.q2.text;
                 document.getElementById('q2-svg-container').innerHTML = state.questions.q2.svg;
-                renderOptionGroup('q2-options', 'q2', state.questions.q2.options, state.answers.q2);
+                renderOptions('q2-options', 'q2', state.questions.q2.options, state.answers.q2);
 
-                updateNetworkUI();
+                syncConnectionUI();
             }
 
-            async function renderReceipt() {
-                switchView('receipt');
-                document.getElementById('offline-banner').classList.add('hidden');
+            async function renderReceiptView() {
+                showView('receipt');
+                document.getElementById('offline-overlay').classList.add('hidden');
 
-                document.getElementById('receipt-score').textContent = `${state.score.toFixed(1)} / 10`;
+                document.getElementById('receipt-score').textContent = `${state.score} / 100`;
                 document.getElementById('receipt-name').textContent = state.studentName;
                 document.getElementById('receipt-email').textContent = state.studentEmail;
                 document.getElementById('receipt-start').textContent = formatDateTime(state.startTime);
                 document.getElementById('receipt-end').textContent = formatDateTime(state.endTime);
                 document.getElementById('receipt-version').textContent = state.version;
 
-                const auditBadge = document.getElementById('receipt-audit-badge');
+                const badge = document.getElementById('receipt-audit-badge');
                 const cleanMsg = document.getElementById('receipt-clean-msg');
-                const tableWrapper = document.getElementById('receipt-table-wrapper');
+                const tableWrap = document.getElementById('receipt-table-wrapper');
                 const tbody = document.getElementById('receipt-incidents-body');
 
                 if (state.incidents.length === 0) {
-                    auditBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
-                    auditBadge.textContent = '0 incidentes · Limpio';
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+                    badge.textContent = '0 incidencias';
                     cleanMsg.classList.remove('hidden');
-                    tableWrapper.classList.add('hidden');
+                    tableWrap.classList.add('hidden');
                 } else {
-                    auditBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800';
-                    auditBadge.textContent = `${state.incidents.length} salida(s) registrada(s)`;
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800';
+                    badge.textContent = `${state.incidents.length} incidencia(s)`;
                     cleanMsg.classList.add('hidden');
-                    tableWrapper.classList.remove('hidden');
+                    tableWrap.classList.remove('hidden');
 
                     tbody.innerHTML = '';
                     state.incidents.forEach((inc) => {
@@ -1002,168 +1003,209 @@
                             <td class="py-2.5 px-3 font-bold text-slate-700">${inc.number}</td>
                             <td class="py-2.5 px-3 font-mono-code text-xs text-slate-600">${formatDateTime(inc.timestamp)}</td>
                             <td class="py-2.5 px-3 font-semibold text-red-700">${inc.reason}</td>
-                            <td class="py-2.5 px-3 text-slate-600">Cambio a Versión #${inc.newVersion}</td>
+                            <td class="py-2.5 px-3 text-slate-600">Versión #${inc.regeneratedVersion}</td>
                         `;
                         tbody.appendChild(tr);
                     });
                 }
 
-                // Calcular firma SHA-256 si aún no existe
                 if (!state.integrityHash) {
-                    const canonical = JSON.stringify({
-                        student: state.studentName,
-                        email: state.studentEmail,
-                        start: state.startTime,
-                        end: state.endTime,
+                    const canonicalPayload = JSON.stringify({
+                        studentName: state.studentName,
+                        studentEmail: state.studentEmail,
+                        startTime: state.startTime,
+                        endTime: state.endTime,
                         version: state.version,
                         score: state.score,
                         incidents: state.incidents
                     });
-                    state.integrityHash = await computeIntegrityHash(canonical);
-                    saveState();
+                    state.integrityHash = await generateSHA256Seal(canonicalPayload);
+                    persistState();
                 }
 
                 document.getElementById('receipt-hash').textContent = state.integrityHash;
 
-                // Preparar JSON para webhook / Google Sheets
-                const webhookPayload = {
+                const exportPayload = {
                     evaluacion: 'Teorema de Tales (2 Partes)',
-                    estudiante: state.studentName,
+                    sustentante: state.studentName,
                     correo: state.studentEmail,
                     inicio: state.startTime,
                     entrega: state.endTime,
-                    versionFinalResuelta: state.version,
-                    calificacion: state.score,
-                    totalSalidas: state.incidents.length,
-                    bitacoraIncidentes: state.incidents,
+                    versionEntregada: state.version,
+                    calificacionSobre100: state.score,
+                    totalIncidencias: state.incidents.length,
+                    bitacoraIncidencias: state.incidents,
                     selloSHA256: state.integrityHash
                 };
-                document.getElementById('json-preview').textContent = JSON.stringify(webhookPayload, null, 2);
+                document.getElementById('json-preview').textContent = JSON.stringify(exportPayload, null, 2);
+
+                if (!GOOGLE_SCRIPT_URL || !GOOGLE_SCRIPT_URL.startsWith('http')) {
+                    updateSyncStatus('Sin GOOGLE_SCRIPT_URL configurada (puedes copiar el comprobante o payload JSON).', false);
+                } else if (state.finalDelivered && state.telemetryQueue.length === 0) {
+                    updateSyncStatus('Entrega y bitácora enviadas a Google Sheets.', false);
+                } else {
+                    updateSyncStatus('Envío pendiente a Google Sheets.', true);
+                }
             }
 
             // ---------------------------------------------------------
-            // 6. EVENTOS DE INTERFAZ DE USUARIO
+            // MANEJADORES DE FORMULARIO, ENTREGA Y ACCESO DOCENTE
             // ---------------------------------------------------------
             document.getElementById('register-form').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const nameInput = document.getElementById('student-name').value.trim();
-                const emailInput = document.getElementById('student-email').value.trim().toLowerCase();
-                const errorBox = document.getElementById('register-error');
+                const nameVal = document.getElementById('student-name').value.trim();
+                const emailVal = document.getElementById('student-email').value.trim().toLowerCase();
+                const errBox = document.getElementById('register-error');
 
-                if (nameInput.length < 5) {
-                    errorBox.textContent = 'Por favor ingresa tu nombre completo (nombre y apellidos).';
-                    errorBox.classList.remove('hidden');
+                if (nameVal.length < 5 || nameVal.split(/\s+/).length < 2) {
+                    errBox.textContent = 'Ingresa tu nombre completo (nombre y apellido).';
+                    errBox.classList.remove('hidden');
                     return;
                 }
 
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(emailInput)) {
-                    errorBox.textContent = 'Por favor ingresa un correo institucional válido.';
-                    errorBox.classList.remove('hidden');
+                const ugtoPattern = /^[a-z0-9._%+-]+@ugto\.mx$/;
+                if (!ugtoPattern.test(emailVal)) {
+                    errBox.textContent = 'El correo institucional debe terminar estrictamente en @ugto.mx.';
+                    errBox.classList.remove('hidden');
                     return;
                 }
 
                 if (!navigator.onLine) {
-                    errorBox.textContent = 'Debes tener conexión a internet activa para iniciar el examen.';
-                    errorBox.classList.remove('hidden');
+                    errBox.textContent = 'Se requiere conexión a internet para iniciar la evaluación.';
+                    errBox.classList.remove('hidden');
                     return;
                 }
 
-                errorBox.classList.add('hidden');
+                errBox.classList.add('hidden');
 
-                // Inicializar estado del examen
                 const initialSeed = Math.floor(Date.now() % 1000000) + 101;
                 state = {
                     status: 'active',
-                    studentName: nameInput,
-                    studentEmail: emailInput,
+                    studentName: nameVal,
+                    studentEmail: emailVal,
                     startTime: new Date().toISOString(),
                     endTime: null,
                     version: 1,
                     seed: initialSeed,
-                    questions: generateExamQuestions(initialSeed),
+                    questions: generateThalesExercises(initialSeed),
                     answers: { q1: null, q2: null },
                     incidents: [],
+                    telemetryQueue: [],
                     score: 0,
-                    integrityHash: ''
+                    integrityHash: '',
+                    finalDelivered: false
                 };
 
-                saveState();
-                renderActiveExam();
+                persistState();
+                renderExamView();
+
+                dispatchTelemetry({
+                    nombre: state.studentName,
+                    correo: state.studentEmail,
+                    tipoEvento: 'INICIO',
+                    detalle: 'Inicio de evaluación Versión #1',
+                    totalInfracciones: 0,
+                    calificacion: 'En curso',
+                    bitacoraCompleta: '[]',
+                    sello: ''
+                }, false);
             });
 
             document.getElementById('btn-submit-exam').addEventListener('click', async () => {
                 if (!navigator.onLine) {
-                    updateNetworkUI();
+                    syncConnectionUI();
                     return;
                 }
 
-                const warnBox = document.getElementById('submit-warning');
+                const warnEl = document.getElementById('submit-warning');
                 if (state.answers.q1 === null || state.answers.q2 === null) {
-                    warnBox.innerHTML = '<span class="text-red-600 font-bold">Debes seleccionar una opción en ambas partes antes de entregar.</span>';
+                    warnEl.innerHTML = '<span class="text-red-600 font-bold">Responde ambas partes (Parte 1 y Parte 2) antes de entregar.</span>';
                     return;
                 }
 
-                // Calcular calificación global (5 pts cada parte) sin guardar ni exponer soluciones
+                // Calificación sobre 100 (50 puntos por cada parte)
                 let totalScore = 0;
-                if (state.answers.q1 === state.questions.q1.correctIndex) totalScore += 5;
-                if (state.answers.q2 === state.questions.q2.correctIndex) totalScore += 5;
+                if (state.answers.q1 === state.questions.q1.correctIndex) totalScore += 50;
+                if (state.answers.q2 === state.questions.q2.correctIndex) totalScore += 50;
 
-                // Eliminar las preguntas y claves de respuestas del estado persistente para impedir inspección
+                // Eliminar preguntas y respuestas de la memoria y localStorage
                 state.questions = null;
                 state.answers = { q1: null, q2: null };
                 state.score = totalScore;
                 state.endTime = new Date().toISOString();
                 state.status = 'submitted';
 
-                saveState();
-                await renderReceipt();
+                const canonicalPayload = JSON.stringify({
+                    studentName: state.studentName,
+                    studentEmail: state.studentEmail,
+                    startTime: state.startTime,
+                    endTime: state.endTime,
+                    version: state.version,
+                    score: state.score,
+                    incidents: state.incidents
+                });
+                state.integrityHash = await generateSHA256Seal(canonicalPayload);
+                persistState();
+
+                await renderReceiptView();
+
+                await dispatchTelemetry({
+                    nombre: state.studentName,
+                    correo: state.studentEmail,
+                    tipoEvento: 'ENTREGA_FINAL',
+                    detalle: `Entrega final Versión #${state.version}`,
+                    totalInfracciones: state.incidents.length,
+                    calificacion: `${state.score} / 100`,
+                    bitacoraCompleta: JSON.stringify(state.incidents),
+                    sello: state.integrityHash
+                }, true);
+            });
+
+            document.getElementById('btn-retry-sync').addEventListener('click', async () => {
+                await flushTelemetryQueue();
             });
 
             document.getElementById('btn-close-modal').addEventListener('click', () => {
                 document.getElementById('infraction-modal').classList.add('hidden');
             });
 
-            // Copiar comprobante al portapapeles (usando execCommand por compatibilidad con iframes)
             document.getElementById('btn-copy-receipt').addEventListener('click', () => {
-                const incidentsSummary = state.incidents.length === 0
-                    ? 'Ninguna (0 salidas)'
+                const incSummary = state.incidents.length === 0
+                    ? '0 incidencias'
                     : state.incidents.map(i => `#${i.number} [${formatDateTime(i.timestamp)}] ${i.reason}`).join(' | ');
 
-                const textToCopy = [
-                    '=== COMPROBANTE DE EXAMEN: TEOREMA DE TALES ===',
-                    `Estudiante: ${state.studentName}`,
+                const summaryText = [
+                    '=== COMPROBANTE DE EVALUACIÓN: TEOREMA DE TALES ===',
+                    `Sustentante: ${state.studentName}`,
                     `Correo: ${state.studentEmail}`,
                     `Inicio: ${formatDateTime(state.startTime)}`,
                     `Entrega: ${formatDateTime(state.endTime)}`,
-                    `Versión Final Resuelta: #${state.version}`,
-                    `Calificación: ${state.score.toFixed(1)} / 10`,
-                    `Salidas / Desconexiones: ${state.incidents.length}`,
-                    `Detalle: ${incidentsSummary}`,
+                    `Versión entregada: #${state.version}`,
+                    `Calificación: ${state.score} / 100`,
+                    `Incidencias: ${state.incidents.length} (${incSummary})`,
                     `Sello SHA-256: ${state.integrityHash}`
                 ].join('\n');
 
-                const tempTextArea = document.createElement('textarea');
-                tempTextArea.value = textToCopy;
-                document.body.appendChild(tempTextArea);
-                tempTextArea.select();
+                const ta = document.createElement('textarea');
+                ta.value = summaryText;
+                document.body.appendChild(ta);
+                ta.select();
                 try {
                     document.execCommand('copy');
                     const fb = document.getElementById('copy-feedback');
                     fb.classList.remove('hidden');
-                    setTimeout(() => fb.classList.add('hidden'), 4000);
+                    setTimeout(() => fb.classList.add('hidden'), 3500);
                 } catch (err) {
-                    console.error('Error al copiar:', err);
+                    console.error('No se pudo copiar el comprobante:', err);
                 }
-                document.body.removeChild(tempTextArea);
+                document.body.removeChild(ta);
             });
 
             document.getElementById('btn-toggle-json').addEventListener('click', () => {
-                const pre = document.getElementById('json-preview');
-                pre.classList.toggle('hidden');
+                document.getElementById('json-preview').classList.toggle('hidden');
             });
 
-            // Acceso docente para limpiar dispositivo
+            // Acceso Docente con PIN 1701
             document.getElementById('btn-open-teacher').addEventListener('click', () => {
                 document.getElementById('teacher-pin-input').value = '';
                 document.getElementById('teacher-pin-error').classList.add('hidden');
@@ -1175,8 +1217,8 @@
             });
 
             document.getElementById('btn-confirm-reset').addEventListener('click', () => {
-                const pin = document.getElementById('teacher-pin-input').value.trim();
-                if (pin === TEACHER_PIN) {
+                const pinVal = document.getElementById('teacher-pin-input').value.trim();
+                if (pinVal === TEACHER_PIN) {
                     localStorage.removeItem(STORAGE_KEY);
                     location.reload();
                 } else {
@@ -1185,20 +1227,19 @@
             });
 
             // ---------------------------------------------------------
-            // 7. INICIALIZACIÓN AL CARGAR LA PÁGINA
+            // ARRANQUE INICIAL Y DETECCIÓN DE RECARGA EN EXAMEN ACTIVO
             // ---------------------------------------------------------
             window.addEventListener('load', async () => {
-                loadState();
-                updateNetworkUI();
+                restoreState();
+                syncConnectionUI();
 
                 if (state.status === 'active') {
-                    // Si recargó la página con el examen activo, cuenta como salida/recarga y regenera
-                    triggerInfraction('Recarga o cierre de navegador durante el examen');
+                    registerInfraction('Recarga de página durante el examen activo', true);
                 } else if (state.status === 'submitted') {
-                    // Si ya entregó, permanece bloqueado en el comprobante sin mostrar respuestas
-                    await renderReceipt();
+                    await renderReceiptView();
+                    await flushTelemetryQueue();
                 } else {
-                    switchView('register');
+                    showView('register');
                 }
             });
         })();
