@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Supervisada | Teorema de Tales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Bloqueo de selección de texto en el área del examen */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        /* Animación suave para alertas de seguridad */
+        @keyframes pulseBorder {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.8); }
+            50% { border-color: rgba(239, 68, 68, 0.2); }
+        }
+        .alert-pulse {
+            animation: pulseBorder 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Barra Superior de Estado y Seguridad -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b border-slate-800">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-inner">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-sm sm:text-base font-bold tracking-tight leading-tight">Evaluación Supervisada</h1>
+                    <p class="text-[11px] text-slate-400">Matemáticas Aplicadas · Teorema de Tales</p>
+                </div>
+            </div>
+
+            <!-- Indicadores en tiempo real -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div id="network-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-700/60">
+                    <span id="network-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span id="network-text">En línea</span>
+                </div>
+                <div id="exam-status-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700">
+                    <span>Versión #<span id="header-version">1</span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner de Desconexión Persistente (cuando navigator.onLine === false) -->
+    <div id="offline-banner" class="hidden bg-red-600 text-white px-4 py-2.5 text-center text-xs sm:text-sm font-semibold shadow-lg">
+        <div class="max-w-4xl mx-auto flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 shrink-0 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3"/>
+            </svg>
+            <span>SIN CONEXIÓN A INTERNET: Se ha registrado una infracción y se generó una nueva versión del examen. Reconecta tus datos o Wi-Fi para poder entregar.</span>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-6 sm:py-8">
+
+        <!-- ========================================================= -->
+        <!-- VISTA 1: REGISTRO INICIAL E INSTRUCCIONES                 -->
+        <!-- ========================================================= -->
+        <section id="view-register" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 py-7 text-white">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 mb-3">
+                    Protocolo Anti-Fraude Activo
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Examen Aplicado: Teorema de Tales</h2>
+                <p class="mt-2 text-slate-300 text-sm sm:text-base max-w-2xl">
+                    Esta evaluación consta de <strong>2 ejercicios prácticos aplicados</strong> con generación paramétrica individual.
+                </p>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-6">
+                <!-- Reglas de supervisión -->
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5">
+                    <h3 class="text-sm font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Reglas Obligatorias de Integridad Académica
+                    </h3>
+                    <ul class="mt-3 space-y-2 text-xs sm:text-sm text-amber-950">
+                        <li class="flex items-start gap-2">
+                            <span class="font-bold text-amber-700">1.</span>
+                            <span><strong>Prohibido salir de la ventana:</strong> Si cambias de pestaña, minimizas la app, abres una ventana flotante o bloqueas la pantalla, el examen se borrará y se generará uno completamente distinto.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="font-bold text-amber-700">2.</span>
+                            <span><strong>Prohibido apagar datos o Wi-Fi:</strong> El sistema funciona aún sin internet. Si desconectas la red, el evento quedará guardado en la memoria local, el examen cambiará de versión y se notificará al docente en el reporte final.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="font-bold text-amber-700">3.</span>
+                            <span><strong>Sin revisión posterior:</strong> Al entregar el examen obtendrás tu calificación global y tu comprobante firmado, pero no podrás visualizar las respuestas correctas ni volver atrás.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Formulario de Identificación -->
+                <form id="register-form" class="space-y-4" novalidate>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="student-name" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                                Nombre completo del estudiante <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="student-name" required placeholder="Ej. Ana Sofía Ramírez López"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label for="student-email" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                                Correo institucional <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" id="student-email" required placeholder="usuario@institucion.edu.mx"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <div id="register-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium"></div>
+
+                    <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100">
+                        <p class="text-xs text-slate-500">
+                            Al iniciar, aceptas que el navegador registre eventos de foco y conectividad durante la prueba.
+                        </p>
+                        <button type="submit" id="btn-start-exam"
+                            class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <span>Comenzar Examen Ahora</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- VISTA 2: EXAMEN ACTIVO (2 PARTES - TEOREMA DE TALES)      -->
+        <!-- ========================================================= -->
+        <section id="view-exam" class="hidden space-y-6 no-select">
+            <!-- Barra de información del alumno e incidentes -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                        <h2 id="exam-student-display" class="font-bold text-slate-900 text-sm sm:text-base">Estudiante</h2>
+                    </div>
+                    <p id="exam-email-display" class="text-xs text-slate-500 ml-4.5">correo@ejemplo.com</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
+                        Reactivo dinámico: <span class="text-indigo-700 font-mono-code" id="exam-seed-display">V1</span>
+                    </div>
+                    <div id="infraction-counter-box" class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
+                        Salidas detectadas: <span id="infraction-count" class="font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTE 1: TRIÁNGULOS SEMEJANTES / SOMBRAS -->
+            <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-700">Parte 1 de 2 · Semejanza y Proyección</span>
+                    <span class="text-xs font-medium text-slate-500">Valor: 5.0 pts</span>
+                </div>
+                <div class="p-5 sm:p-6 space-y-5">
+                    <p id="q1-text" class="text-sm sm:text-base text-slate-800 leading-relaxed font-medium">
+                        Cargando ejercicio 1...
+                    </p>
+
+                    <!-- Diagrama SVG Dinámico Parte 1 -->
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 sm:p-4 flex justify-center items-center overflow-hidden">
+                        <div id="q1-svg-container" class="w-full max-w-lg"></div>
+                    </div>
+
+                    <!-- Opciones Parte 1 -->
+                    <div class="space-y-2.5" id="q1-options" role="radiogroup" aria-label="Opciones Parte 1">
+                        <!-- Generadas dinámicamente -->
+                    </div>
+                </div>
+            </article>
+
+            <!-- PARTE 2: RECTAS PARALELAS CORTADAS POR SECANTES -->
+            <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-700">Parte 2 de 2 · Paralelas y Transversales</span>
+                    <span class="text-xs font-medium text-slate-500">Valor: 5.0 pts</span>
+                </div>
+                <div class="p-5 sm:p-6 space-y-5">
+                    <p id="q2-text" class="text-sm sm:text-base text-slate-800 leading-relaxed font-medium">
+                        Cargando ejercicio 2...
+                    </p>
+
+                    <!-- Diagrama SVG Dinámico Parte 2 -->
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 sm:p-4 flex justify-center items-center overflow-hidden">
+                        <div id="q2-svg-container" class="w-full max-w-lg"></div>
+                    </div>
+
+                    <!-- Opciones Parte 2 -->
+                    <div class="space-y-2.5" id="q2-options" role="radiogroup" aria-label="Opciones Parte 2">
+                        <!-- Generadas dinámicamente -->
+                    </div>
+                </div>
+            </article>
+
+            <!-- Barra de Entrega -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div id="submit-warning" class="text-xs text-slate-500">
+                    Verifica tus selecciones. Una vez enviado, <strong>no podrás ver las respuestas correctas</strong>.
+                </div>
+                <button type="button" id="btn-submit-exam"
+                    class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition cursor-pointer">
+                    Finalizar y Entregar Examen
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- VISTA 3: COMPROBANTE FINAL Y BITÁCORA PARA EL DOCENTE     -->
+        <!-- ========================================================= -->
+        <section id="view-receipt" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-900 px-6 py-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Examen Cerrado y Bloqueado
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold">Comprobante Oficial de Evaluación</h2>
+                        <p class="text-xs text-slate-400 mt-1">Por seguridad académica, la revisión de reactivos está deshabilitada.</p>
+                    </div>
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-5 py-3 text-center shrink-0">
+                        <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Calificación Final</span>
+                        <span id="receipt-score" class="text-3xl font-extrabold text-white font-mono-code">0.0 / 10</span>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- Datos del sustentante -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <span class="block text-xs text-slate-500 font-medium">Estudiante</span>
+                            <span id="receipt-name" class="font-bold text-slate-900">—</span>
+                            <span id="receipt-email" class="block text-xs text-slate-600 mt-0.5">—</span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <span class="block text-xs text-slate-500 font-medium">Tiempos y Versión Resuelta</span>
+                            <span class="block text-xs text-slate-700 mt-1">Inicio: <strong id="receipt-start">—</strong></span>
+                            <span class="block text-xs text-slate-700">Entrega: <strong id="receipt-end">—</strong></span>
+                            <span class="block text-xs text-indigo-700 font-semibold mt-0.5">Versión final contestada: #<span id="receipt-version">1</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de Auditoría -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Bitácora de Supervisión Anti-Trampas</h3>
+                            <span id="receipt-audit-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                Sin incidentes
+                            </span>
+                        </div>
+
+                        <div id="receipt-clean-msg" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm">
+                            El estudiante permaneció dentro de la ventana del examen y mantuvo su conexión activa durante toda la evaluación.
+                        </div>
+
+                        <div id="receipt-table-wrapper" class="hidden overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                                        <th class="py-2.5 px-3 font-bold">#</th>
+                                        <th class="py-2.5 px-3 font-bold">Hora Exacta</th>
+                                        <th class="py-2.5 px-3 font-bold">Evento Detectado</th>
+                                        <th class="py-2.5 px-3 font-bold">Acción Aplicada</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receipt-incidents-body" class="divide-y divide-slate-200 bg-white">
+                                    <!-- Filas dinámicas -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Sello Criptográfico de Integridad -->
+                    <div class="p-4 rounded-xl bg-slate-900 text-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Sello de Integridad SHA-256 (Antimanipulación)</span>
+                            <span class="text-[11px] text-slate-400">Verificable por el docente</span>
+                        </div>
+                        <p id="receipt-hash" class="font-mono-code text-xs break-all text-emerald-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                            Calculando firma...
+                        </p>
+                    </div>
+
+                    <!-- Acciones de entrega al profesor -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button type="button" id="btn-copy-receipt"
+                            class="flex-1 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                            </svg>
+                            <span>Copiar Comprobante para Enviar al Docente</span>
+                        </button>
+                        <button type="button" id="btn-toggle-json"
+                            class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm border border-slate-300 transition cursor-pointer">
+                            Ver Payload JSON (Webhook)
+                        </button>
+                    </div>
+
+                    <div id="copy-feedback" class="hidden text-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2 rounded-lg">
+                        ¡Comprobante copiado al portapapeles! Ya puedes pegarlo en el formulario o chat de tu profesor.
+                    </div>
+
+                    <pre id="json-preview" class="hidden p-4 rounded-xl bg-slate-950 text-slate-300 font-mono-code text-xs overflow-x-auto border border-slate-800"></pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- MODAL DE ALERTA DE INFRACCIÓN Y REGENERACIÓN              -->
+    <!-- ========================================================= -->
+    <div id="infraction-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border-2 border-red-500 alert-pulse space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-red-600">Alerta de Seguridad</span>
+                    <h3 class="text-lg font-extrabold text-slate-900 leading-tight">Examen Reiniciado</h3>
+                </div>
+            </div>
+
+            <p id="modal-infraction-reason" class="text-sm text-slate-700 leading-relaxed">
+                Se detectó una salida de la ventana del examen.
+            </p>
+
+            <div class="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-900 space-y-1">
+                <p><strong>Consecuencia aplicada:</strong></p>
+                <p>• Tus respuestas anteriores fueron borradas.</p>
+                <p>• Se asignó una <strong>nueva versión del examen (#<span id="modal-new-version">2</span>)</strong> con datos diferentes.</p>
+                <p>• El incidente quedó grabado en tu reporte oficial.</p>
+            </div>
+
+            <button type="button" id="btn-close-modal"
+                class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition cursor-pointer">
+                Entendido, continuar con el nuevo examen
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL DE MENSAJE / VALIDACIÓN / ACCESO DOCENTE             -->
+    <!-- ========================================================= -->
+    <div id="teacher-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 space-y-4">
+            <h3 class="text-base font-extrabold text-slate-900">Acceso Docente · Reiniciar Sesión</h3>
+            <p class="text-xs text-slate-600">
+                Ingresa el PIN de docente para limpiar el almacenamiento local de este dispositivo y permitir una nueva prueba.
+            </p>
+            <input type="password" id="teacher-pin-input" maxlength="8" placeholder="Ingresa el PIN docente"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <p id="teacher-pin-error" class="hidden text-xs font-semibold text-red-600">PIN incorrecto.</p>
+            <div class="flex gap-2 pt-1">
+                <button type="button" id="btn-cancel-teacher" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-confirm-reset" class="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer">
+                    Borrar y Reiniciar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 mt-8">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <span>Sistema de Evaluación Supervisada · Teorema de Tales</span>
+            <button type="button" id="btn-open-teacher" class="text-slate-400 hover:text-slate-700 underline transition cursor-pointer">
+                Acceso Docente: Reiniciar Dispositivo
+            </button>
+        </div>
+    </footer>
+
+    <!-- ========================================================= -->
+    <!-- LÓGICA DE APLICACIÓN, GENERADOR DE TALES Y ANTI-TRAMPAS   -->
+    <!-- ========================================================= -->
+    <script>
+        (function () {
+            'use strict';
+
+            // Clave de almacenamiento persistente (resiste recargas y modo avión)
+            const STORAGE_KEY = 'tales_secure_exam_state_v1';
+            const TEACHER_PIN = '1701';
+
+            // Estado global de la sesión
+            let state = {
+                status: 'register', // 'register' | 'active' | 'submitted'
+                studentName: '',
+                studentEmail: '',
+                startTime: null,
+                endTime: null,
+                version: 1,
+                seed: 0,
+                questions: null,
+                answers: { q1: null, q2: null },
+                incidents: [],
+                score: 0,
+                integrityHash: ''
+            };
+
+            // Control de debounce para evitar disparos múltiples simultáneos (blur + visibilitychange)
+            let lastInfractionTimestamp = 0;
+            const INFRACTION_COOLDOWN_MS = 1200;
+
+            // Referencias al DOM
+            const views = {
+                register: document.getElementById('view-register'),
+                exam: document.getElementById('view-exam'),
+                receipt: document.getElementById('view-receipt')
+            };
+
+            // ---------------------------------------------------------
+            // 1. UTILIDADES MATEMÁTICAS Y GENERADOR PSEUDOALEATORIO
+            // ---------------------------------------------------------
+            function createSeededRandom(seed) {
+                let s = seed % 2147483647;
+                if (s <= 0) s += 2147483646;
+                return function () {
+                    s = (s * 16807) % 2147483647;
+                    return (s - 1) / 2147483646;
+                };
+            }
+
+            function randInt(rng, min, max) {
+                return Math.floor(rng() * (max - min + 1)) + min;
+            }
+
+            function shuffleArray(rng, array) {
+                const arr = array.slice();
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(rng() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function formatNumber(num) {
+                return Number.isInteger(num) ? num.toString() : num.toFixed(2).replace(/\.00$/, '');
+            }
+
+            function formatDateTime(isoString) {
+                if (!isoString) return '—';
+                const d = new Date(isoString);
+                return d.toLocaleString('es-MX', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+
+            // ---------------------------------------------------------
+            // 2. GENERADOR PARAMÉTRICO DEL TEOREMA DE TALES (2 PARTES)
+            // ---------------------------------------------------------
+            function generateExamQuestions(seed) {
+                const rng = createSeededRandom(seed);
+
+                // --- PARTE 1: Triángulos semejantes / Sombras proyectadas ---
+                const scenariosPart1 = [
+                    {
+                        mainObj: 'una torre de telecomunicaciones',
+                        refObj: 'un poste de alumbrado',
+                        unit: 'm',
+                        colorMain: '#334155',
+                        colorRef: '#4f46e5'
+                    },
+                    {
+                        mainObj: 'un edificio corporativo',
+                        refObj: 'una señal vial vertical',
+                        unit: 'm',
+                        colorMain: '#1e293b',
+                        colorRef: '#0284c7'
+                    },
+                    {
+                        mainObj: 'un aerogenerador eólico',
+                        refObj: 'un árbol de control',
+                        unit: 'm',
+                        colorMain: '#0f172a',
+                        colorRef: '#059669'
+                    },
+                    {
+                        mainObj: 'una antena repetidora',
+                        refObj: 'una baliza topográfica',
+                        unit: 'm',
+                        colorMain: '#312e81',
+                        colorRef: '#d97706'
+                    }
+                ];
+
+                const sc1 = scenariosPart1[randInt(rng, 0, scenariosPart1.length - 1)];
+
+                // Elegimos valores exactos y limpios: H / S = h / s => H = (h * S) / s
+                const refHeight = randInt(rng, 2, 5); // h (ej. 3 m)
+                const refShadow = randInt(rng, 3, 7); // s (ej. 4 m)
+                const scaleFactor = randInt(rng, 4, 9); // factor de proporción
+                const mainShadow = refShadow * scaleFactor; // S
+                const mainHeight = refHeight * scaleFactor; // H (incógnita x)
+
+                // Distractores realistas para Parte 1
+                const d1_inverted = Number(((refShadow * mainShadow) / refHeight).toFixed(2));
+                const d1_additive = Number((mainShadow - refShadow + refHeight).toFixed(2));
+                const d1_wrongMult = Number((refHeight * (scaleFactor + 2)).toFixed(2));
+
+                const rawOptions1 = [
+                    { val: mainHeight, correct: true },
+                    { val: d1_inverted === mainHeight ? mainHeight + 4 : d1_inverted, correct: false },
+                    { val: d1_additive === mainHeight ? mainHeight - 3 : d1_additive, correct: false },
+                    { val: d1_wrongMult === mainHeight ? mainHeight + 6 : d1_wrongMult, correct: false }
+                ];
+
+                // Garantizar 4 valores únicos
+                const uniqueOpts1 = [];
+                const usedVals1 = new Set();
+                rawOptions1.forEach((opt, idx) => {
+                    let v = opt.val;
+                    while (usedVals1.has(v) || v <= 0) {
+                        v = Number((v + 2.5 + idx).toFixed(2));
+                    }
+                    usedVals1.add(v);
+                    uniqueOpts1.push({
+                        label: `${formatNumber(v)} ${sc1.unit}`,
+                        isCorrect: opt.correct
+                    });
+                });
+
+                const shuffledOpts1 = shuffleArray(rng, uniqueOpts1);
+                const correctIndex1 = shuffledOpts1.findIndex(o => o.isCorrect);
+
+                const q1 = {
+                    text: `A la misma hora del día, ${sc1.mainObj} proyecta una sombra horizontal de ${mainShadow} ${sc1.unit}, mientras que ${sc1.refObj} de ${refHeight} ${sc1.unit} de altura proyecta una sombra de ${refShadow} ${sc1.unit}. Aplicando el Teorema de Tales para triángulos semejantes, ¿cuál es la altura (x) de ${sc1.mainObj}?`,
+                    svg: buildPart1SVG(sc1, mainShadow, refHeight, refShadow),
+                    options: shuffledOpts1.map(o => o.label),
+                    correctIndex: correctIndex1
+                };
+
+                // --- PARTE 2: Rectas paralelas cortadas por dos secantes ---
+                const scenariosPart2 = [
+                    {
+                        context: 'Tres avenidas paralelas (L1, L2 y L3) son cortadas por dos calles transversales.',
+                        unit: 'm'
+                    },
+                    {
+                        context: 'Una estructura metálica consta de tres vigas paralelas (L1, L2 y L3) unidas por dos soportes inclinados.',
+                        unit: 'cm'
+                    },
+                    {
+                        context: 'Un terreno agrícola está dividido por tres linderos paralelos (L1, L2 y L3) cruzados por dos canales de riego.',
+                        unit: 'm'
+                    }
+                ];
+
+                const sc2 = scenariosPart2[randInt(rng, 0, scenariosPart2.length - 1)];
+
+                // Proporción: a / b = c / x  => x = (b * c) / a
+                const baseA = randInt(rng, 3, 8);
+                const baseB = randInt(rng, 4, 10);
+                // Evitar que a == b para que no sea trivial
+                const segA = baseA;
+                const segB = baseB === baseA ? baseB + 2 : baseB;
+                const mult2 = randInt(rng, 2, 5);
+                const segC = segA * mult2;
+                const segX = segB * mult2; // incógnita x
+
+                const d2_inverted = Number(((segA * segC) / segB).toFixed(2));
+                const d2_additive = Number((segC + (segB - segA)).toFixed(2));
+                const d2_cross = Number(((segA * segB) / segC).toFixed(2));
+
+                const rawOptions2 = [
+                    { val: segX, correct: true },
+                    { val: d2_inverted, correct: false },
+                    { val: d2_additive, correct: false },
+                    { val: d2_cross, correct: false }
+                ];
+
+                const uniqueOpts2 = [];
+                const usedVals2 = new Set();
+                rawOptions2.forEach((opt, idx) => {
+                    let v = opt.val;
+                    while (usedVals2.has(v) || v <= 0) {
+                        v = Number((v + 3 + idx).toFixed(2));
+                    }
+                    usedVals2.add(v);
+                    uniqueOpts2.push({
+                        label: `${formatNumber(v)} ${sc2.unit}`,
+                        isCorrect: opt.correct
+                    });
+                });
+
+                const shuffledOpts2 = shuffleArray(rng, uniqueOpts2);
+                const correctIndex2 = shuffledOpts2.findIndex(o => o.isCorrect);
+
+                const q2 = {
+                    text: `${sc2.context} En una de las transversales los segmentos miden ${segA} ${sc2.unit} y ${segB} ${sc2.unit}. En la otra transversal, el segmento correspondiente al primero mide ${segC} ${sc2.unit}. Determina la longitud del segmento faltante (x).`,
+                    svg: buildPart2SVG(segA, segB, segC, sc2.unit),
+                    options: shuffledOpts2.map(o => o.label),
+                    correctIndex: correctIndex2
+                };
+
+                return { q1, q2 };
+            }
+
+            // SVG Dinámico Parte 1: Triángulos semejantes por proyección de sombra
+            function buildPart1SVG(sc, mainShadow, refHeight, refShadow) {
+                return `
+                <svg viewBox="0 0 460 220" class="w-full h-auto max-h-56" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Fondo cielo sutil -->
+                    <rect x="0" y="0" width="460" height="220" rx="12" fill="#f8fafc"/>
+                    
+                    <!-- Sol y rayos paralelos -->
+                    <circle cx="42" cy="36" r="14" fill="#fbbf24" opacity="0.9"/>
+                    <line x1="58" y1="42" x2="245" y2="180" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="5,4"/>
+                    <line x1="280" y1="95" x2="395" y2="180" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="5,4"/>
+
+                    <!-- Suelo -->
+                    <line x1="25" y1="180" x2="435" y2="180" stroke="#64748b" stroke-width="2.5"/>
+
+                    <!-- Triángulo Mayor (Objeto Principal) -->
+                    <polygon points="85,180 85,55 245,180" fill="#4f46e5" fill-opacity="0.08"/>
+                    <rect x="77" y="55" width="12" height="125" rx="2" fill="${sc.colorMain}"/>
+                    <!-- Etiqueta Altura x -->
+                    <text x="68" y="122" text-anchor="end" font-family="Inter, sans-serif" font-size="14" font-weight="800" fill="#dc2626">x = ?</text>
+                    <!-- Etiqueta Sombra Mayor -->
+                    <line x1="85" y1="192" x2="245" y2="192" stroke="#334155" stroke-width="1.5"/>
+                    <text x="165" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e293b">Sombra = ${mainShadow} ${sc.unit}</text>
+
+                    <!-- Triángulo Menor (Objeto de Referencia) -->
+                    <polygon points="315,180 315,120 395,180" fill="#0ea5e9" fill-opacity="0.12"/>
+                    <rect x="311" y="120" width="8" height="60" rx="2" fill="${sc.colorRef}"/>
+                    <!-- Etiqueta Altura Referencia -->
+                    <text x="303" y="154" text-anchor="end" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#4f46e5">${refHeight} ${sc.unit}</text>
+                    <!-- Etiqueta Sombra Menor -->
+                    <line x1="315" y1="192" x2="395" y2="192" stroke="#334155" stroke-width="1.5"/>
+                    <text x="355" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e293b">${refShadow} ${sc.unit}</text>
+
+                    <!-- Ángulos rectos -->
+                    <polyline points="85,168 97,168 97,180" fill="none" stroke="#475569" stroke-width="1.5"/>
+                    <polyline points="315,170 325,170 325,180" fill="none" stroke="#475569" stroke-width="1.5"/>
+                </svg>`;
+            }
+
+            // SVG Dinámico Parte 2: Tres paralelas cortadas por dos secantes
+            function buildPart2SVG(segA, segB, segC, unit) {
+                return `
+                <svg viewBox="0 0 460 220" class="w-full h-auto max-h-56" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0" y="0" width="460" height="220" rx="12" fill="#f8fafc"/>
+
+                    <!-- Tres rectas paralelas L1, L2, L3 -->
+                    <line x1="40" y1="45" x2="420" y2="45" stroke="#0284c7" stroke-width="2.5"/>
+                    <text x="426" y="49" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">L1</text>
+
+                    <line x1="40" y1="110" x2="420" y2="110" stroke="#0284c7" stroke-width="2.5"/>
+                    <text x="426" y="114" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">L2</text>
+
+                    <line x1="40" y1="180" x2="420" y2="180" stroke="#0284c7" stroke-width="2.5"/>
+                    <text x="426" y="184" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">L3</text>
+
+                    <!-- Secante Izquierda (S1) -->
+                    <line x1="175" y1="22" x2="115" y2="202" stroke="#1e293b" stroke-width="3"/>
+                    <!-- Puntos de intersección S1 -->
+                    <circle cx="167.3" cy="45" r="4" fill="#4f46e5"/>
+                    <circle cx="145.6" cy="110" r="4" fill="#4f46e5"/>
+                    <circle cx="122.3" cy="180" r="4" fill="#4f46e5"/>
+
+                    <!-- Etiquetas Secante Izquierda -->
+                    <rect x="78" y="66" width="66" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+                    <text x="111" y="81" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${segA} ${unit}</text>
+
+                    <rect x="55" y="134" width="66" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+                    <text x="88" y="149" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${segB} ${unit}</text>
+
+                    <!-- Secante Derecha (S2) -->
+                    <line x1="275" y1="22" x2="345" y2="202" stroke="#1e293b" stroke-width="3"/>
+                    <!-- Puntos de intersección S2 -->
+                    <circle cx="283.9" cy="45" r="4" fill="#4f46e5"/>
+                    <circle cx="309.2" cy="110" r="4" fill="#4f46e5"/>
+                    <circle cx="336.4" cy="180" r="4" fill="#4f46e5"/>
+
+                    <!-- Etiquetas Secante Derecha -->
+                    <rect x="312" y="66" width="66" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+                    <text x="345" y="81" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${segC} ${unit}</text>
+
+                    <rect x="338" y="134" width="66" height="22" rx="6" fill="#fef2f2" stroke="#fca5a5"/>
+                    <text x="371" y="149" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="800" fill="#dc2626">x = ?</text>
+                </svg>`;
+            }
+
+            // ---------------------------------------------------------
+            // 3. PERSISTENCIA Y SELLO CRIPTOGRÁFICO (SHA-256)
+            // ---------------------------------------------------------
+            function saveState() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                } catch (e) {
+                    console.error('No se pudo guardar en localStorage:', e);
+                }
+            }
+
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (parsed && parsed.status) {
+                            state = parsed;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error leyendo localStorage:', e);
+                }
+            }
+
+            async function computeIntegrityHash(payloadString) {
+                try {
+                    if (window.crypto && window.crypto.subtle) {
+                        const encoder = new TextEncoder();
+                        const data = encoder.encode(payloadString);
+                        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+                        const hashArray = Array.from(new Uint8Array(hashBuffer));
+                        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+                    }
+                } catch (e) {
+                    // Fallback determinista si el contexto no soporta subtle
+                }
+                let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+                for (let i = 0; i < payloadString.length; i++) {
+                    const ch = payloadString.charCodeAt(i);
+                    h1 = Math.imul(h1 ^ ch, 2654435761);
+                    h2 = Math.imul(h2 ^ ch, 1597334677);
+                }
+                h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+                h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+                return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16).toUpperCase().padStart(16, '0');
+            }
+
+            // ---------------------------------------------------------
+            // 4. MOTOR ANTI-TRAMPAS (PESTAÑA, MINIMIZADO Y MODO OFFLINE)
+            // ---------------------------------------------------------
+            function triggerInfraction(reasonLabel) {
+                if (state.status !== 'active') return;
+
+                const now = Date.now();
+                if (now - lastInfractionTimestamp < INFRACTION_COOLDOWN_MS) {
+                    return; // Evita duplicados por eventos encadenados
+                }
+                lastInfractionTimestamp = now;
+
+                // Incrementar versión y regenerar semilla completamente distinta
+                state.version += 1;
+                state.seed = Math.floor(now % 1000000) + state.version * 7919;
+                state.questions = generateExamQuestions(state.seed);
+                state.answers = { q1: null, q2: null };
+
+                // Registrar incidente en bitácora persistente
+                state.incidents.push({
+                    number: state.incidents.length + 1,
+                    timestamp: new Date().toISOString(),
+                    reason: reasonLabel,
+                    newVersion: state.version
+                });
+
+                saveState();
+                renderActiveExam();
+
+                // Mostrar modal de alerta al estudiante
+                document.getElementById('modal-infraction-reason').textContent =
+                    `Motivo registrado: "${reasonLabel}". Por seguridad, tu examen anterior fue anulado.`;
+                document.getElementById('modal-new-version').textContent = state.version;
+                document.getElementById('infraction-modal').classList.remove('hidden');
+            }
+
+            function updateNetworkUI() {
+                const isOnline = navigator.onLine;
+                const badge = document.getElementById('network-badge');
+                const dot = document.getElementById('network-dot');
+                const text = document.getElementById('network-text');
+                const banner = document.getElementById('offline-banner');
+                const btnSubmit = document.getElementById('btn-submit-exam');
+
+                if (isOnline) {
+                    badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-700/60';
+                    dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                    text.textContent = 'En línea';
+                    banner.classList.add('hidden');
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+                        btnSubmit.textContent = 'Finalizar y Entregar Examen';
+                    }
+                } else {
+                    badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-950 text-red-200 border border-red-700';
+                    dot.className = 'w-2 h-2 rounded-full bg-red-400 animate-ping';
+                    text.textContent = 'Sin conexión';
+                    if (state.status === 'active') {
+                        banner.classList.remove('hidden');
+                        if (btnSubmit) {
+                            btnSubmit.disabled = true;
+                            btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+                            btnSubmit.textContent = 'Reconecta internet para entregar';
+                        }
+                    }
+                }
+            }
+
+            // Listeners de eventos de seguridad
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && state.status === 'active') {
+                    triggerInfraction('Cambio de pestaña, minimizado o bloqueo de pantalla');
+                }
+            });
+
+            window.addEventListener('blur', () => {
+                if (state.status === 'active') {
+                    triggerInfraction('Pérdida de foco de ventana / Apertura de app externa');
+                }
+            });
+
+            window.addEventListener('offline', () => {
+                updateNetworkUI();
+                if (state.status === 'active') {
+                    triggerInfraction('Desconexión de red (Datos móviles o Wi-Fi apagados)');
+                }
+            });
+
+            window.addEventListener('online', () => {
+                updateNetworkUI();
+            });
+
+            // Bloqueo de clic derecho y atajos de copia/inspección durante el examen
+            document.addEventListener('contextmenu', (e) => {
+                if (state.status === 'active') {
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (state.status === 'active') {
+                    if ((e.ctrlKey || e.metaKey) && ['c', 'u', 's', 'p', 'i'].includes(e.key.toLowerCase())) {
+                        e.preventDefault();
+                    }
+                    if (e.key === 'F12') {
+                        e.preventDefault();
+                    }
+                }
+            });
+
+            // ---------------------------------------------------------
+            // 5. RENDERIZADO DE INTERFACES
+            // ---------------------------------------------------------
+            function switchView(viewName) {
+                Object.keys(views).forEach(k => {
+                    if (k === viewName) {
+                        views[k].classList.remove('hidden');
+                    } else {
+                        views[k].classList.add('hidden');
+                    }
+                });
+
+                const statusBadge = document.getElementById('exam-status-badge');
+                if (viewName === 'active') {
+                    statusBadge.classList.remove('hidden');
+                    statusBadge.classList.add('flex');
+                } else {
+                    statusBadge.classList.add('hidden');
+                    statusBadge.classList.remove('flex');
+                }
+            }
+
+            function renderOptionGroup(containerId, questionKey, options, selectedIndex) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                const letters = ['A', 'B', 'C', 'D'];
+
+                options.forEach((optText, idx) => {
+                    const isSelected = selectedIndex === idx;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `w-full text-left p-3.5 sm:p-4 rounded-xl border-2 transition flex items-center gap-3 cursor-pointer ${
+                        isSelected
+                            ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 shadow-sm'
+                            : 'border-slate-200 hover:border-slate-300 bg-white text-slate-800'
+                    }`;
+
+                    btn.innerHTML = `
+                        <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 ${
+                            isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                        }">${letters[idx]}</span>
+                        <span class="text-sm sm:text-base font-semibold">${optText}</span>
+                    `;
+
+                    btn.addEventListener('click', () => {
+                        state.answers[questionKey] = idx;
+                        saveState();
+                        renderOptionGroup(containerId, questionKey, options, idx);
+                    });
+
+                    container.appendChild(btn);
+                });
+            }
+
+            function renderActiveExam() {
+                switchView('exam');
+
+                document.getElementById('exam-student-display').textContent = state.studentName;
+                document.getElementById('exam-email-display').textContent = state.studentEmail;
+                document.getElementById('header-version').textContent = state.version;
+                document.getElementById('exam-seed-display').textContent = `V${state.version}-${String(state.seed).slice(-4)}`;
+
+                const countEl = document.getElementById('infraction-count');
+                const boxEl = document.getElementById('infraction-counter-box');
+                countEl.textContent = state.incidents.length;
+
+                if (state.incidents.length > 0) {
+                    boxEl.className = 'px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-800';
+                } else {
+                    boxEl.className = 'px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800';
+                }
+
+                // Render Parte 1
+                document.getElementById('q1-text').textContent = state.questions.q1.text;
+                document.getElementById('q1-svg-container').innerHTML = state.questions.q1.svg;
+                renderOptionGroup('q1-options', 'q1', state.questions.q1.options, state.answers.q1);
+
+                // Render Parte 2
+                document.getElementById('q2-text').textContent = state.questions.q2.text;
+                document.getElementById('q2-svg-container').innerHTML = state.questions.q2.svg;
+                renderOptionGroup('q2-options', 'q2', state.questions.q2.options, state.answers.q2);
+
+                updateNetworkUI();
+            }
+
+            async function renderReceipt() {
+                switchView('receipt');
+                document.getElementById('offline-banner').classList.add('hidden');
+
+                document.getElementById('receipt-score').textContent = `${state.score.toFixed(1)} / 10`;
+                document.getElementById('receipt-name').textContent = state.studentName;
+                document.getElementById('receipt-email').textContent = state.studentEmail;
+                document.getElementById('receipt-start').textContent = formatDateTime(state.startTime);
+                document.getElementById('receipt-end').textContent = formatDateTime(state.endTime);
+                document.getElementById('receipt-version').textContent = state.version;
+
+                const auditBadge = document.getElementById('receipt-audit-badge');
+                const cleanMsg = document.getElementById('receipt-clean-msg');
+                const tableWrapper = document.getElementById('receipt-table-wrapper');
+                const tbody = document.getElementById('receipt-incidents-body');
+
+                if (state.incidents.length === 0) {
+                    auditBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+                    auditBadge.textContent = '0 incidentes · Limpio';
+                    cleanMsg.classList.remove('hidden');
+                    tableWrapper.classList.add('hidden');
+                } else {
+                    auditBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800';
+                    auditBadge.textContent = `${state.incidents.length} salida(s) registrada(s)`;
+                    cleanMsg.classList.add('hidden');
+                    tableWrapper.classList.remove('hidden');
+
+                    tbody.innerHTML = '';
+                    state.incidents.forEach((inc) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 font-bold text-slate-700">${inc.number}</td>
+                            <td class="py-2.5 px-3 font-mono-code text-xs text-slate-600">${formatDateTime(inc.timestamp)}</td>
+                            <td class="py-2.5 px-3 font-semibold text-red-700">${inc.reason}</td>
+                            <td class="py-2.5 px-3 text-slate-600">Cambio a Versión #${inc.newVersion}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                // Calcular firma SHA-256 si aún no existe
+                if (!state.integrityHash) {
+                    const canonical = JSON.stringify({
+                        student: state.studentName,
+                        email: state.studentEmail,
+                        start: state.startTime,
+                        end: state.endTime,
+                        version: state.version,
+                        score: state.score,
+                        incidents: state.incidents
+                    });
+                    state.integrityHash = await computeIntegrityHash(canonical);
+                    saveState();
+                }
+
+                document.getElementById('receipt-hash').textContent = state.integrityHash;
+
+                // Preparar JSON para webhook / Google Sheets
+                const webhookPayload = {
+                    evaluacion: 'Teorema de Tales (2 Partes)',
+                    estudiante: state.studentName,
+                    correo: state.studentEmail,
+                    inicio: state.startTime,
+                    entrega: state.endTime,
+                    versionFinalResuelta: state.version,
+                    calificacion: state.score,
+                    totalSalidas: state.incidents.length,
+                    bitacoraIncidentes: state.incidents,
+                    selloSHA256: state.integrityHash
+                };
+                document.getElementById('json-preview').textContent = JSON.stringify(webhookPayload, null, 2);
+            }
+
+            // ---------------------------------------------------------
+            // 6. EVENTOS DE INTERFAZ DE USUARIO
+            // ---------------------------------------------------------
+            document.getElementById('register-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nameInput = document.getElementById('student-name').value.trim();
+                const emailInput = document.getElementById('student-email').value.trim().toLowerCase();
+                const errorBox = document.getElementById('register-error');
+
+                if (nameInput.length < 5) {
+                    errorBox.textContent = 'Por favor ingresa tu nombre completo (nombre y apellidos).';
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput)) {
+                    errorBox.textContent = 'Por favor ingresa un correo institucional válido.';
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+
+                if (!navigator.onLine) {
+                    errorBox.textContent = 'Debes tener conexión a internet activa para iniciar el examen.';
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+
+                errorBox.classList.add('hidden');
+
+                // Inicializar estado del examen
+                const initialSeed = Math.floor(Date.now() % 1000000) + 101;
+                state = {
+                    status: 'active',
+                    studentName: nameInput,
+                    studentEmail: emailInput,
+                    startTime: new Date().toISOString(),
+                    endTime: null,
+                    version: 1,
+                    seed: initialSeed,
+                    questions: generateExamQuestions(initialSeed),
+                    answers: { q1: null, q2: null },
+                    incidents: [],
+                    score: 0,
+                    integrityHash: ''
+                };
+
+                saveState();
+                renderActiveExam();
+            });
+
+            document.getElementById('btn-submit-exam').addEventListener('click', async () => {
+                if (!navigator.onLine) {
+                    updateNetworkUI();
+                    return;
+                }
+
+                const warnBox = document.getElementById('submit-warning');
+                if (state.answers.q1 === null || state.answers.q2 === null) {
+                    warnBox.innerHTML = '<span class="text-red-600 font-bold">Debes seleccionar una opción en ambas partes antes de entregar.</span>';
+                    return;
+                }
+
+                // Calcular calificación global (5 pts cada parte) sin guardar ni exponer soluciones
+                let totalScore = 0;
+                if (state.answers.q1 === state.questions.q1.correctIndex) totalScore += 5;
+                if (state.answers.q2 === state.questions.q2.correctIndex) totalScore += 5;
+
+                // Eliminar las preguntas y claves de respuestas del estado persistente para impedir inspección
+                state.questions = null;
+                state.answers = { q1: null, q2: null };
+                state.score = totalScore;
+                state.endTime = new Date().toISOString();
+                state.status = 'submitted';
+
+                saveState();
+                await renderReceipt();
+            });
+
+            document.getElementById('btn-close-modal').addEventListener('click', () => {
+                document.getElementById('infraction-modal').classList.add('hidden');
+            });
+
+            // Copiar comprobante al portapapeles (usando execCommand por compatibilidad con iframes)
+            document.getElementById('btn-copy-receipt').addEventListener('click', () => {
+                const incidentsSummary = state.incidents.length === 0
+                    ? 'Ninguna (0 salidas)'
+                    : state.incidents.map(i => `#${i.number} [${formatDateTime(i.timestamp)}] ${i.reason}`).join(' | ');
+
+                const textToCopy = [
+                    '=== COMPROBANTE DE EXAMEN: TEOREMA DE TALES ===',
+                    `Estudiante: ${state.studentName}`,
+                    `Correo: ${state.studentEmail}`,
+                    `Inicio: ${formatDateTime(state.startTime)}`,
+                    `Entrega: ${formatDateTime(state.endTime)}`,
+                    `Versión Final Resuelta: #${state.version}`,
+                    `Calificación: ${state.score.toFixed(1)} / 10`,
+                    `Salidas / Desconexiones: ${state.incidents.length}`,
+                    `Detalle: ${incidentsSummary}`,
+                    `Sello SHA-256: ${state.integrityHash}`
+                ].join('\n');
+
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = textToCopy;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    const fb = document.getElementById('copy-feedback');
+                    fb.classList.remove('hidden');
+                    setTimeout(() => fb.classList.add('hidden'), 4000);
+                } catch (err) {
+                    console.error('Error al copiar:', err);
+                }
+                document.body.removeChild(tempTextArea);
+            });
+
+            document.getElementById('btn-toggle-json').addEventListener('click', () => {
+                const pre = document.getElementById('json-preview');
+                pre.classList.toggle('hidden');
+            });
+
+            // Acceso docente para limpiar dispositivo
+            document.getElementById('btn-open-teacher').addEventListener('click', () => {
+                document.getElementById('teacher-pin-input').value = '';
+                document.getElementById('teacher-pin-error').classList.add('hidden');
+                document.getElementById('teacher-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('btn-cancel-teacher').addEventListener('click', () => {
+                document.getElementById('teacher-modal').classList.add('hidden');
+            });
+
+            document.getElementById('btn-confirm-reset').addEventListener('click', () => {
+                const pin = document.getElementById('teacher-pin-input').value.trim();
+                if (pin === TEACHER_PIN) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    location.reload();
+                } else {
+                    document.getElementById('teacher-pin-error').classList.remove('hidden');
+                }
+            });
+
+            // ---------------------------------------------------------
+            // 7. INICIALIZACIÓN AL CARGAR LA PÁGINA
+            // ---------------------------------------------------------
+            window.addEventListener('load', async () => {
+                loadState();
+                updateNetworkUI();
+
+                if (state.status === 'active') {
+                    // Si recargó la página con el examen activo, cuenta como salida/recarga y regenera
+                    triggerInfraction('Recarga o cierre de navegador durante el examen');
+                } else if (state.status === 'submitted') {
+                    // Si ya entregó, permanece bloqueado en el comprobante sin mostrar respuestas
+                    await renderReceipt();
+                } else {
+                    switchView('register');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
